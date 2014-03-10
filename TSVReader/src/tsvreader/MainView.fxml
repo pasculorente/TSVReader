@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tsvreader.MainViewController">
+    <bottom>
+        <HBox alignment="CENTER_LEFT" prefHeight="-1.0" prefWidth="-1.0" spacing="5.0">
+            <children>
+                <ProgressIndicator id="progress" fx:id="progress" progress="0.0" />
+                <Label fx:id="filename" text="Select a file" />
+                <Separator maxWidth="1.7976931348623157E308" prefWidth="-1.0" visible="false" HBox.hgrow="SOMETIMES" />
+                <Label fx:id="lines" text="0 rows" />
+            </children>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+            </padding>
+        </HBox>
+    </bottom>
+    <center>
+        <ScrollPane fx:id="tableContainer" fitToHeight="true" fitToWidth="true" prefHeight="-1.0" prefWidth="-1.0">
+            <content>
+                <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" />
+            </content>
+        </ScrollPane>
+    </center>
+    <left>
+        <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="-1.0" prefWidth="190.0">
+            <content>
+                <VBox fx:id="filtersBox" alignment="TOP_CENTER" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" spacing="5.0">
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </left>
+    <top>
+        <HBox prefHeight="-1.0" prefWidth="-1.0" spacing="5.0" BorderPane.alignment="TOP_LEFT">
+            <children>
+                <Button fx:id="openButton" mnemonicParsing="false" onAction="#load" text="Open" />
+                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#save" text="Save" />
+            </children>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+            </padding>
+        </HBox>
+    </top>
+</BorderPane>

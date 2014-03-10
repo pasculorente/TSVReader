@@ -1,0 +1,29 @@
+Chr:Coordinate:Chr:TEXT
+Start:Coordinate:Start:NUMERIC
+End:Coordinate:End:NUMERIC
+Ref::Ref:TEXT
+Obs::Alt:TEXT
+Otherinfo::Other info:TEXT
+Func::Func:TEXT:Function
+Gene::Gene:TEXT
+ExonicFunc::Exonic Func:TEXT
+AAChange::AAChange:TEXT
+Annotation::Annotation:TEXT
+Segregation::Segregation:TEXT
+Conserved::Conserved:TEXT
+SegDup::SegDup:NUMERIC:Segment duplication
+ESP6500_ALL::ESP6500_ALL:NUMERIC
+1000g2012feb_ALL::1000g2012feb_ALL:NUMERIC
+dbSNP135::dbSNP135:TEXT
+AVSIFT::AVSIFT:NUMERIC
+LJB_PhyloP:LJB:PhyloP:TEXT
+LJB_PhyloP_Pred:LJB:PhyloP_Pred:TEXT
+LJB_SIFT:LJB:SIFT:NUMERIC
+LJB_SIFT_Pred:LJB:SIFT_Pred:TEXT
+LJB_PolyPhen2:LJB:PolyPhen2:NUMERIC
+LJB_PolyPhen2_Pred:LJB:PolyPhen2_Pred:TEXT
+LJB_LRT:LJB:LRT:TEXT
+LJB_LRT_Pred:LJB:LRT_Pred:NUMERIC
+LJB_MutationTaster:LJB:MutationTaster:NUMERIC
+LJB_MutationTaster_Pred:LJB:MutationTaster_Pred:TEXT
+LJB_GERP++:LJB:GERP++:NUMERIC

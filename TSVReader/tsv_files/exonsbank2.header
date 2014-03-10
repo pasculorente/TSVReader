@@ -1,0 +1,12 @@
+CHROM:Text:Chromosome
+START:Numeric:Exon start
+END:Numeric:Exon end
+GENE:Multicolumn:2
+ID:Text:Gene identification
+NAME:Text:Gene name
+EXON:Multicolumn:3
+NUMBER:Numeric:Exon number
+ID:Text:Exon identification
+NAME:Text:Exon name
+INFO:Text:Additional information
+BIOTYPE:Text:Type of gene

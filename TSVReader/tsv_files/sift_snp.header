@@ -1,0 +1,37 @@
+Coordinates:Coordinates:Chrom:text:Chromosome
+Coordinates:Coordinates:Pos:Numeric:Start position
+Coordinates::Ref:Text:Reference base
+Coordinates::Alt:Text:Alternative base
+Codons::Codons:Text
+Ensembl Transcript ID:Trascript ID:Ensembl:text
+RefSeq Transcript ID:Trascript ID:RefSeq:text
+Known Transcript ID:Trascript ID:Known:text
+CCDS Transcript ID:Trascript ID:CCDS:text
+Ensembl Protein ID:Protein ID:Ensembl:text
+RefSeq Protein ID:Protein ID:RefSeq:text
+Known Protein ID:Protein ID:Known:text
+Substitution::Substitution:text
+Region::Region:text
+dbSNP ID::dbSNP ID:text
+SNP Type::SNP Type:text
+Prediction::Prediction:text
+Score::Score:numeric
+Median Info::Median Info:numeric
+# Seqs at position::Seqs:numeric:Number of sequences at position
+Gene ID:Gene:ID:text
+Gene Name:Gene:Name:text
+Gene Desc:Gene:Description:text
+Protein Family ID::Protein Family ID:text
+OMIM Disease::OMIM Disease:text
+Average Allele Freqs:Allele Frequencies:Average:numeric
+CEU Allele Freqs:Allele Frequencies:CEU:numeric
+HCB Allele Freqs:Allele Frequencies:HCB:numeric
+JPT Allele Freqs:Allele Frequencies:JPT:numeric
+YRI Allele Freqs:Allele Frequencies:YRI:numeric
+Avg. Allele Freq. (1000 Genomes):1000 Genomes Allele Frequencies:Average:numeric:Average allele frequency in 1000 Genomes project
+European Allele Freq. (1000 Genomes):1000 Genomes Allele Frequencies:European:numeric:European allele frequency in 1000 Genomes project
+East Asian Allele Freq. (1000 Genomes):1000 Genomes Allele Frequencies:East Asian:numeric:East Asian allele frequency in 1000 Genomes project
+West African Allele Freq. (1000 Genomes):1000 Genomes Allele Frequencies:West African:numeric:West Africa allele frequency in 1000 Genomes project
+South Asian Allele Freq. (1000 Genomes):1000 Genomes Allele Frequencies:South Asian:numeric:South Asian allele frequency in 1000 Genomes project
+American Allele Freq. (1000 Genomes):1000 Genomes Allele Frequencies:American:numeric:American allele frequency in 1000 Genomes project
+User Comment::User Comment:text
