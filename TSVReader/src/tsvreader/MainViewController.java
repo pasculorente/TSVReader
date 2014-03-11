@@ -78,11 +78,11 @@ public class MainViewController {
                 String file = controller.getFile();
                 type = controller.getType();
                 switch (type) {
-                case "sift_snp":
-                    parser = new SIFTParser(file);
-                    break;
-                default:
-                    parser = new Parser(file, "tsv_files/" + type + ".header");
+                    case "sift_snp":
+                        parser = new SIFTParser(file);
+                        break;
+                    default:
+                        parser = new Parser(file, "tsv_files/" + type + ".header");
                 }
                 parser.setOnSucceeded((WorkerStateEvent t) -> {
                     restartTable();
@@ -152,6 +152,7 @@ public class MainViewController {
 
     private void loadFilters() {
         filtersBox.getChildren().clear();
+        filters.clear();
         String currentParent = "";
         for (int i = 0; i < dataset.getHeaders().size(); i++) {
             if (!dataset.getHeaders().get(i).getParent().isEmpty()) {
@@ -172,38 +173,38 @@ public class MainViewController {
         filtersBox.getChildren().add(new Label(header.getName()));
         hBox.setAlignment(Pos.CENTER);
         switch (header.getType().toLowerCase()) {
-        case "numeric":
-            TextField min = new TextField();
-            min.setPromptText("Min");
-            min.setOnAction((ActionEvent t) -> {
-                filter();
-            });
-            min.setMaxWidth(80);
-            TextField max = new TextField();
-            max.setPromptText("Max");
-            max.setOnAction((ActionEvent t) -> {
-                filter();
-            });
-            max.setMaxWidth(80);
-            hBox.getChildren().setAll(min, max);
-            filtersBox.getChildren().add(hBox);
-            filters.add(new Filter(header.getType(), index, min, max));
-            break;
-        case "text":
-            TextField value = new TextField();
-            value.setPromptText(header.getName());
-            value.setOnAction((ActionEvent t) -> {
-                filter();
-            });
-            CheckBox cb = new CheckBox();
-            cb.setTooltip(new Tooltip("Exact match"));
-            cb.setOnAction((ActionEvent t) -> {
-                filter();
-            });
-            hBox.getChildren().addAll(value, cb);
-            filtersBox.getChildren().add(hBox);
-            filters.add(new Filter(header.getType(), index, value, cb));
-            break;
+            case "numeric":
+                TextField min = new TextField();
+                min.setPromptText("Min");
+                min.setOnAction((ActionEvent t) -> {
+                    filter();
+                });
+                min.setMaxWidth(80);
+                TextField max = new TextField();
+                max.setPromptText("Max");
+                max.setOnAction((ActionEvent t) -> {
+                    filter();
+                });
+                max.setMaxWidth(80);
+                hBox.getChildren().setAll(min, max);
+                filtersBox.getChildren().add(hBox);
+                filters.add(new Filter(header.getType(), index, min, max));
+                break;
+            case "text":
+                TextField value = new TextField();
+                value.setPromptText(header.getName());
+                value.setOnAction((ActionEvent t) -> {
+                    filter();
+                });
+                CheckBox cb = new CheckBox();
+                cb.setTooltip(new Tooltip("Exact match"));
+                cb.setOnAction((ActionEvent t) -> {
+                    filter();
+                });
+                hBox.getChildren().addAll(value, cb);
+                filtersBox.getChildren().add(hBox);
+                filters.add(new Filter(header.getType(), index, value, cb));
+                break;
         }
     }
 
@@ -212,26 +213,27 @@ public class MainViewController {
         List<String[]> filtered = dataset.getRows();
         for (Filter filter : filters) {
             switch (filter.getType().toLowerCase()) {
-            case "numeric":
-                try {
-                    String min = ((TextField) filter.getNodes()[0]).getText();
-                    String max = ((TextField) filter.getNodes()[1]).getText();
-                    if (!min.isEmpty() && !max.isEmpty()) {
-                        double minimun = Double.valueOf(min);
-                        double maximum = Double.valueOf(max);
-                        filtered = dataset.filterNumeric(true, filter.getIndex(), minimun, maximum);
+                case "numeric":
+                    try {
+                        String min = ((TextField) filter.getNodes()[0]).getText();
+                        String max = ((TextField) filter.getNodes()[1]).getText();
+                        if (!min.isEmpty() && !max.isEmpty()) {
+                            double minimun = Double.valueOf(min);
+                            double maximum = Double.valueOf(max);
+                            filtered = dataset.filterNumeric(true, filter.getIndex(), minimun,
+                                    maximum);
+                        }
+                    } catch (NumberFormatException ex) {
+                        System.err.println("Bad number format");
                     }
-                } catch (NumberFormatException ex) {
-                    System.err.println("Bad number format");
-                }
-                break;
-            case "text":
-                String value = ((TextField) filter.getNodes()[0]).getText();
-                boolean match = ((CheckBox) filter.getNodes()[1]).isSelected();
-                if (!value.isEmpty()) {
-                    filtered = dataset.filterText(true, filter.getIndex(), match, value);
-                }
-                break;
+                    break;
+                case "text":
+                    String value = ((TextField) filter.getNodes()[0]).getText();
+                    boolean match = ((CheckBox) filter.getNodes()[1]).isSelected();
+                    if (!value.isEmpty()) {
+                        filtered = dataset.filterText(true, filter.getIndex(), match, value);
+                    }
+                    break;
             }
         }
         table.setItems(FXCollections.observableArrayList(filtered));
@@ -243,11 +245,11 @@ public class MainViewController {
         File f = OS.saveTSV();
         if (f != null) {
             switch (type) {
-            case "sift_snp":
-                SIFTSaver.save(dataset, f);
-                break;
-            default:
-                dataset.save(f.getAbsolutePath());
+                case "sift_snp":
+                    SIFTSaver.save(dataset, f);
+                    break;
+                default:
+                    dataset.save(f.getAbsolutePath());
 
             }
 

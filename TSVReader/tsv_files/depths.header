@@ -1,0 +1,13 @@
+chrom:coordinates:chrom:text:Chromosome
+startexon:coordinates:start:numeric:Start of exon
+endexon:coordinates:end:numeric:End of exon
+startpoor:Poor area:start:numeric:Start of poor area
+endpoor:Poor area:end:numeric:End of poor area
+gene_id:Gene:id:text
+gene_name:Gene:name:text
+num_exon:Exon:number:numeric
+exon_id:Exon:id:text
+trans_name:Exon:Trans Name:text
+trans_info:Exon:Trans info:text
+gene_bio::Biotype:text
+match::match:text

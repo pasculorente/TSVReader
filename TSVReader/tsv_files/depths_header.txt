@@ -1,0 +1,1 @@
+chrom	startexon	endexon	startpoor	endpoor	gene_id	gene_name	num_exon	exon_id	trans_name	trans_info	gene_bio	match
