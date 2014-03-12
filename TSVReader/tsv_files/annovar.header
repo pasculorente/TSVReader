@@ -1,4 +1,4 @@
-Chr:Coordinate:Chr:TEXT
+Chr:Coordinate:Chr:TEXT:Chromosome
 Start:Coordinate:Start:NUMERIC
 End:Coordinate:End:NUMERIC
 Ref::Ref:TEXT
@@ -22,8 +22,8 @@ LJB_SIFT:LJB:SIFT:NUMERIC
 LJB_SIFT_Pred:LJB:SIFT_Pred:TEXT
 LJB_PolyPhen2:LJB:PolyPhen2:NUMERIC
 LJB_PolyPhen2_Pred:LJB:PolyPhen2_Pred:TEXT
-LJB_LRT:LJB:LRT:TEXT
-LJB_LRT_Pred:LJB:LRT_Pred:NUMERIC
+LJB_LRT:LJB:LRT:NUMERIC
+LJB_LRT_Pred:LJB:LRT_Pred:TEXT
 LJB_MutationTaster:LJB:MutationTaster:NUMERIC
 LJB_MutationTaster_Pred:LJB:MutationTaster_Pred:TEXT
 LJB_GERP++:LJB:GERP++:NUMERIC

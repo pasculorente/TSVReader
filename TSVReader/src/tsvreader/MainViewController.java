@@ -14,7 +14,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -92,7 +91,6 @@ public class MainViewController {
                 new Thread(parser).start();
                 this.filename.setText(file);
                 TSVReader.setTitle(file);
-
             }
         } catch (IOException ex) {
             Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
@@ -113,6 +111,11 @@ public class MainViewController {
                 + " in total)");
         loadFilters();
         saveButton.setDisable(false);
+        table = populateTable();
+        tableContainer.setContent(table);
+    }
+
+    private TableView<String[]> populateTable() {
         TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
                 getRows()));
         TableColumn groupColumn = null;
@@ -146,8 +149,7 @@ public class MainViewController {
         newTable.setSortPolicy((TableView<String[]> p) -> {
             return false;
         });
-        tableContainer.setContent(newTable);
-        table = newTable;
+        return newTable;
     }
 
     private void loadFilters() {
@@ -159,6 +161,7 @@ public class MainViewController {
                 if (!dataset.getHeaders().get(i).getParent().equals(currentParent)) {
                     currentParent = dataset.getHeaders().get(i).getParent();
                     filtersBox.getChildren().add(new Label(currentParent));
+                    filtersBox.getChildren().add(new Separator(Orientation.HORIZONTAL));
                 }
             } else {
                 filtersBox.getChildren().add(new Separator(Orientation.HORIZONTAL));
@@ -170,12 +173,13 @@ public class MainViewController {
 
     private void addFilter(Header header, int index) {
         HBox hBox = new HBox(5);
-        filtersBox.getChildren().add(new Label(header.getName()));
-        hBox.setAlignment(Pos.CENTER);
         switch (header.getType().toLowerCase()) {
             case "numeric":
                 TextField min = new TextField();
-                min.setPromptText("Min");
+                min.setPromptText(header.getName());
+                if (!header.getDescription().isEmpty()) {
+                    min.setTooltip(new Tooltip(header.getDescription()));
+                }
                 min.setOnAction((ActionEvent t) -> {
                     filter();
                 });
@@ -193,6 +197,9 @@ public class MainViewController {
             case "text":
                 TextField value = new TextField();
                 value.setPromptText(header.getName());
+                if (!header.getDescription().isEmpty()) {
+                    value.setTooltip(new Tooltip(header.getDescription()));
+                }
                 value.setOnAction((ActionEvent t) -> {
                     filter();
                 });
