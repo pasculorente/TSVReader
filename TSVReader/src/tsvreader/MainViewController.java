@@ -269,15 +269,14 @@ public class MainViewController {
 
     @FXML
     private void save() {
-        File f = OS.saveTSV();
+        File f = OS.saveTSV(TSVReader.getMainWindow());
         if (f != null) {
             switch (type) {
                 case "sift_snp":
                     SIFTSaver.save(dataset, f);
                     break;
                 default:
-                    dataset.save(f.getAbsolutePath());
-
+                    Saver.save(dataset, f);
             }
 
         }

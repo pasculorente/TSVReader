@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 uichuimi03
+ * Copyright (C) 2014 UICHUIMI
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import tsvreader.Dataset.Logic;
 /**
  * FXML Controller class
  *
- * @author uichuimi03
+ * @author Pascual Lorente Arencibia
  */
 public class FilterViewController {
 
@@ -48,18 +48,38 @@ public class FilterViewController {
         logic.getSelectionModel().selectFirst();
     }
 
+    /**
+     * Gets the delete Button.
+     *
+     * @return the delete Button.
+     */
     public Button getDelete() {
         return delete;
     }
 
+    /**
+     * Gets the logic ComboBox.
+     *
+     * @return the logic ComboBox.
+     */
     public ComboBox getLogic() {
         return logic;
     }
 
+    /**
+     * Gets the name Label.
+     *
+     * @return the name Label.
+     */
     public Label getName() {
         return name;
     }
 
+    /**
+     * Gets the values HBox.
+     *
+     * @return the values HBox.
+     */
     public HBox getValues() {
         return values;
     }
