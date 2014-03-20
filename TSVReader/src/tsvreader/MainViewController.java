@@ -11,22 +11,22 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -43,23 +43,20 @@ public class MainViewController {
     @FXML
     private Label lines;
     @FXML
-    private Label filename;
-    @FXML
-    private ProgressIndicator progress;
-    @FXML
-    private Button openButton;
-    @FXML
     private Button saveButton;
+    @FXML
+    private ComboBox filtersComboBox;
+
     private TableView<String[]> table;
     private Dataset dataset;
     private List<Filter> filters;
-
     private Parser parser;
     private String type;
 
     public void initialize() {
         filters = new ArrayList<>();
         saveButton.setDisable(true);
+        filtersComboBox.getItems().clear();
     }
 
     @FXML
@@ -85,10 +82,8 @@ public class MainViewController {
                 parser.setOnSucceeded((WorkerStateEvent t) -> {
                     restartTable();
                 });
-                progress.progressProperty().bind(parser.progressProperty());
                 lines.textProperty().bind(parser.messageProperty());
                 new Thread(parser).start();
-                this.filename.setText(file);
                 TSVReader.setTitle(file);
             }
         } catch (IOException ex) {
@@ -103,8 +98,6 @@ public class MainViewController {
         } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        progress.progressProperty().unbind();
-        progress.setProgress(1);
         lines.textProperty().unbind();
         lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
                 + " in total)");
@@ -154,89 +147,124 @@ public class MainViewController {
     private void loadFilters() {
         filtersBox.getChildren().clear();
         filters.clear();
-        String currentParent = "";
+        filtersComboBox.getItems().clear();
         for (int i = 0; i < dataset.getHeaders().size(); i++) {
-            if (!dataset.getHeaders().get(i).getParent().isEmpty()) {
-                if (!dataset.getHeaders().get(i).getParent().equals(currentParent)) {
-                    currentParent = dataset.getHeaders().get(i).getParent();
-                    filtersBox.getChildren().add(new Label(currentParent));
-                    filtersBox.getChildren().add(new Separator(Orientation.HORIZONTAL));
-                }
-            } else {
-                filtersBox.getChildren().add(new Separator(Orientation.HORIZONTAL));
-                currentParent = "";
-            }
-            addFilter(dataset.getHeaders().get(i), i);
+            Header header = dataset.getHeaders().get(i);
+            filtersComboBox.getItems().add(header.getParent() + ":" + header.getName());
+        }
+    }
+
+    @FXML
+    private void addNewFilter() {
+        int index = filtersComboBox.getSelectionModel().getSelectedIndex();
+        if (index != -1) {
+            addFilter(dataset.getHeaders().get(index), index);
         }
     }
 
     private void addFilter(Header header, int index) {
-        HBox hBox = new HBox(5);
-        switch (header.getType().toLowerCase()) {
+        FilterViewController controller;
+        final Parent parent;
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("FilterView.fxml"));
+        try {
+            parent = loader.load();
+            if (parent == null) {
+                return;
+            }
+            controller = loader.getController();
+            controller.getName().setText(header.getParent() + ":" + header.getName());
+            controller.getName().setTooltip(new Tooltip(header.getDescription()));
+            controller.getDelete().setOnAction((ActionEvent t) -> {
+                removeFilter(parent);
+            });
+            controller.getLogic().setOnAction((Event t) -> {
+                filter();
+            });
+            switch (header.getType().toLowerCase()) {
+                case "numeric":
+                    TextField min = new TextField();
+                    TextField max = new TextField();
+                    min.setPromptText("min");
+                    max.setPromptText("Max");
+                    min.setOnAction((ActionEvent t) -> {
+                        filter();
+                    });
+                    max.setOnAction((ActionEvent t) -> {
+                        filter();
+                    });
+                    controller.getValues().getChildren().addAll(min, max);
+                    filtersBox.getChildren().add(parent);
+                    filters.
+                            add(new Filter(header.getType(), index, controller.getLogic(), min, max));
+                    HBox.setHgrow(min, Priority.SOMETIMES);
+                    HBox.setHgrow(max, Priority.SOMETIMES);
+                    break;
+                case "text":
+                    TextField value = new TextField();
+                    value.setPromptText(header.getName());
+                    if (!header.getDescription().isEmpty()) {
+                        value.setTooltip(new Tooltip(header.getDescription()));
+                    }
+                    value.setOnAction((ActionEvent t) -> {
+                        filter();
+                    });
+                    controller.getValues().getChildren().add(value);
+                    HBox.setHgrow(value, Priority.SOMETIMES);
+                    filtersBox.getChildren().add(parent);
+                    filters.add(new Filter(header.getType(), index, controller.getLogic(), value));
+                    break;
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void removeFilter(Parent parent) {
+        for (int i = 0; i < filtersBox.getChildren().size(); i++) {
+            Parent p = (Parent) filtersBox.getChildren().get(i);
+            if (p == parent) {
+                filtersBox.getChildren().remove(i);
+                filters.remove(i);
+                filter();
+                return;
+            }
+        }
+    }
+
+    private void filter(Filter filter, Dataset.Logic logic) {
+        switch (filter.getType().toLowerCase()) {
             case "numeric":
-                TextField min = new TextField();
-                min.setPromptText(header.getName());
-                if (!header.getDescription().isEmpty()) {
-                    min.setTooltip(new Tooltip(header.getDescription()));
+                try {
+                    String min = ((TextField) filter.getNodes()[1]).getText();
+                    String max = ((TextField) filter.getNodes()[2]).getText();
+                    if (!min.isEmpty() && !max.isEmpty()) {
+                        double minimun = Double.valueOf(min);
+                        double maximum = Double.valueOf(max);
+                        dataset.filterNumeric(filter.getIndex(), minimun, maximum, logic);
+                    }
+                } catch (NumberFormatException ex) {
+                    System.err.println("Bad number format");
                 }
-                min.setOnAction((ActionEvent t) -> {
-                    filter();
-                });
-                min.setMaxWidth(80);
-                TextField max = new TextField();
-                max.setPromptText("Max");
-                max.setOnAction((ActionEvent t) -> {
-                    filter();
-                });
-                max.setMaxWidth(80);
-                hBox.getChildren().setAll(min, max);
-                filtersBox.getChildren().add(hBox);
-                filters.add(new Filter(header.getType(), index, min, max));
                 break;
             case "text":
-                TextField value = new TextField();
-                value.setPromptText(header.getName());
-                if (!header.getDescription().isEmpty()) {
-                    value.setTooltip(new Tooltip(header.getDescription()));
+                String value = ((TextField) filter.getNodes()[1]).getText();
+                if (!value.isEmpty()) {
+                    dataset.filterText(filter.getIndex(), value, logic);
                 }
-                value.setOnAction((ActionEvent t) -> {
-                    filter();
-                });
-                filtersBox.getChildren().add(value);
-                filters.add(new Filter(header.getType(), index, value));
                 break;
         }
     }
 
     private void filter() {
-        dataset.resestVariants();
-        List<String[]> filtered = dataset.getRows();
+        dataset.resetVariants();
         for (Filter filter : filters) {
-            switch (filter.getType().toLowerCase()) {
-                case "numeric":
-                    try {
-                        String min = ((TextField) filter.getNodes()[0]).getText();
-                        String max = ((TextField) filter.getNodes()[1]).getText();
-                        if (!min.isEmpty() && !max.isEmpty()) {
-                            double minimun = Double.valueOf(min);
-                            double maximum = Double.valueOf(max);
-                            filtered = dataset.filterNumeric(true, filter.getIndex(), minimun,
-                                    maximum);
-                        }
-                    } catch (NumberFormatException ex) {
-                        System.err.println("Bad number format");
-                    }
-                    break;
-                case "text":
-                    String value = ((TextField) filter.getNodes()[0]).getText();
-                    if (!value.isEmpty()) {
-                        filtered = dataset.filterText(true, filter.getIndex(), value);
-                    }
-                    break;
-            }
+            ComboBox cb = (ComboBox) filter.nodes[0];
+            Dataset.Logic logic = (Dataset.Logic) cb.getValue();
+            filter(filter, logic);
         }
-        table.setItems(FXCollections.observableArrayList(filtered));
-        lines.setText(filtered.size() + " rows (" + dataset.getRows().size() + " in total)");
+        table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
+        lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
+                + " in total)");
     }
 
     @FXML
