@@ -18,7 +18,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
@@ -203,14 +202,8 @@ public class MainViewController {
                 value.setOnAction((ActionEvent t) -> {
                     filter();
                 });
-                CheckBox cb = new CheckBox();
-                cb.setTooltip(new Tooltip("Exact match"));
-                cb.setOnAction((ActionEvent t) -> {
-                    filter();
-                });
-                hBox.getChildren().addAll(value, cb);
-                filtersBox.getChildren().add(hBox);
-                filters.add(new Filter(header.getType(), index, value, cb));
+                filtersBox.getChildren().add(value);
+                filters.add(new Filter(header.getType(), index, value));
                 break;
         }
     }
@@ -236,9 +229,8 @@ public class MainViewController {
                     break;
                 case "text":
                     String value = ((TextField) filter.getNodes()[0]).getText();
-                    boolean match = ((CheckBox) filter.getNodes()[1]).isSelected();
                     if (!value.isEmpty()) {
-                        filtered = dataset.filterText(true, filter.getIndex(), match, value);
+                        filtered = dataset.filterText(true, filter.getIndex(), value);
                     }
                     break;
             }

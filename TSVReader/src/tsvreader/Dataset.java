@@ -37,21 +37,14 @@ public class Dataset {
         return cachedRows;
     }
 
-    List<String[]> filterText(boolean cache, int column, boolean match, String value) {
+    List<String[]> filterText(boolean cache, int column, String value) {
         List<String[]> origin = cache ? cachedRows : rows;
         cachedRows = new ArrayList<>();
-        if (match) {
-            origin.stream().filter((data) -> (data[column].equals(value))).
-                    forEach((data) -> {
+        origin.stream().forEach((data) -> {
+            if (data[column].matches(value)) {
                 cachedRows.add(data);
-            });
-        } else {
-            origin.stream().filter((data) -> (data[column].toLowerCase().contains(value.
-                    toLowerCase()))).
-                    forEach((data) -> {
-                cachedRows.add(data);
-            });
-        }
+            }
+        });
         return cachedRows;
     }
 
