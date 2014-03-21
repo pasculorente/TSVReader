@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2014 UICHUIMI
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package tsvreader;
 
 import java.io.File;
@@ -31,34 +47,77 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
+ * The controller of the main view. With the open button, it shows a window to select a file. Then,
+ * loads the Dataset, creates the filters view, and shows the table. It also interprets user filters
+ * and translate them to the Dataset.
  *
- * @author uichuimi03
+ * @author Pascual Lorente Arencibia
  */
 public class MainViewController {
 
+    /**
+     * The ScrollPane where the data table is wrapped.
+     */
     @FXML
     private ScrollPane tableContainer;
+    /**
+     * The VBox where filters are shown.
+     */
     @FXML
     private VBox filtersBox;
+    /**
+     * The label to show the number of rows.
+     */
     @FXML
     private Label lines;
+    /**
+     * The save Button.
+     */
     @FXML
     private Button saveButton;
+    /**
+     * The ComboBox to load new filters.
+     */
     @FXML
     private ComboBox filtersComboBox;
 
+    /**
+     * THE TABLE!!!!.
+     */
     private TableView<String[]> table;
+    /**
+     * The Dataset where the file is loaded.
+     */
     private Dataset dataset;
+    /**
+     * The list of Filters (not the graphical filters, but the intermediate ones). Any filter in
+     * this list corresponds to the same column filter in the GUI filters list.
+     */
     private List<Filter> filters;
+    /**
+     * The file parser/loader.
+     */
     private Parser parser;
+    /**
+     * The file type.
+     */
     private String type;
 
+    /**
+     * Makes some initial configuration. This method is called automatically when the window is
+     * loaded.
+     */
     public void initialize() {
         filters = new ArrayList<>();
         saveButton.setDisable(true);
         filtersComboBox.getItems().clear();
     }
 
+    /**
+     * Shows the file selection, waits for the user to select a file, closes the file selection
+     * windows and launches a Parser to load the Dataset. When the dataset is loaded, it will
+     * automatically call restartGUI().
+     */
     @FXML
     private void load() {
         try {
@@ -80,7 +139,7 @@ public class MainViewController {
                         parser = new Parser(file, "tsv_files/" + type + ".header");
                 }
                 parser.setOnSucceeded((WorkerStateEvent t) -> {
-                    restartTable();
+                    restartGUI();
                 });
                 lines.textProperty().bind(parser.messageProperty());
                 new Thread(parser).start();
@@ -92,11 +151,16 @@ public class MainViewController {
         }
     }
 
-    private void restartTable() {
+    /**
+     * Takes a new Dataset from the parser and reloads all the Graphical User Interface: the table
+     * and the filters box.
+     */
+    private void restartGUI() {
         try {
             dataset = parser.get();
         } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+            return;
         }
         lines.textProperty().unbind();
         lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
@@ -107,6 +171,13 @@ public class MainViewController {
         tableContainer.setContent(table);
     }
 
+    /**
+     * Using the current Dataset, makes a new table. Creates all the columns and assigns the content
+     * to the view. This new table is not allocated anywhere in the GUI. Use the return value to put
+     * it whereas you want.
+     *
+     * @return the new table created from the current Dataset.
+     */
     private TableView<String[]> populateTable() {
         TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
                 getRows()));
@@ -144,6 +215,10 @@ public class MainViewController {
         return newTable;
     }
 
+    /**
+     * Refresh the filters pane, according to the dataset. It also resets the list of internal
+     * filters.
+     */
     private void loadFilters() {
         filtersBox.getChildren().clear();
         filters.clear();
@@ -154,6 +229,10 @@ public class MainViewController {
         }
     }
 
+    /**
+     * Method called when the user presses the Add Button in the filters pane. if there is a column
+     * selected in the ComboBox, it will add a new Filter.
+     */
     @FXML
     private void addNewFilter() {
         int index = filtersComboBox.getSelectionModel().getSelectedIndex();
@@ -162,6 +241,12 @@ public class MainViewController {
         }
     }
 
+    /**
+     * Adds a new filter to the filters pane and creates the corresponding internal filter.
+     *
+     * @param header
+     * @param index
+     */
     private void addFilter(Header header, int index) {
         FilterViewController controller;
         final Parent parent;
@@ -219,6 +304,11 @@ public class MainViewController {
         }
     }
 
+    /**
+     * Removes a filter from the GUI and from the internal filters.
+     *
+     * @param parent The GUI filter pane.
+     */
     private void removeFilter(Parent parent) {
         for (int i = 0; i < filtersBox.getChildren().size(); i++) {
             Parent p = (Parent) filtersBox.getChildren().get(i);
@@ -231,30 +321,10 @@ public class MainViewController {
         }
     }
 
-    private void filter(Filter filter, Dataset.Logic logic) {
-        switch (filter.getType().toLowerCase()) {
-            case "numeric":
-                try {
-                    String min = ((TextField) filter.getNodes()[1]).getText();
-                    String max = ((TextField) filter.getNodes()[2]).getText();
-                    if (!min.isEmpty() && !max.isEmpty()) {
-                        double minimun = Double.valueOf(min);
-                        double maximum = Double.valueOf(max);
-                        dataset.filterNumeric(filter.getIndex(), minimun, maximum, logic);
-                    }
-                } catch (NumberFormatException ex) {
-                    System.err.println("Bad number format");
-                }
-                break;
-            case "text":
-                String value = ((TextField) filter.getNodes()[1]).getText();
-                if (!value.isEmpty()) {
-                    dataset.filterText(filter.getIndex(), value, logic);
-                }
-                break;
-        }
-    }
-
+    /**
+     * Applies all the current filters to the Dataset and reloads the table using the cachedRows
+     * from the Dataset.
+     */
     private void filter() {
         dataset.resetVariants();
         for (Filter filter : filters) {
@@ -267,6 +337,43 @@ public class MainViewController {
                 + " in total)");
     }
 
+    /**
+     * Applies a filter to the Dataset.
+     *
+     * @param filter The filter.
+     * @param logic If it is a ONLY or a NOT filter.
+     * @see Filter
+     */
+    private void filter(Filter filter, Dataset.Logic logic) {
+        switch (filter.getType().toLowerCase()) {
+            case "numeric":
+                try {
+                    String min = ((TextField) filter.getNodes()[1]).getText();
+                    String max = ((TextField) filter.getNodes()[2]).getText();
+                    if (!min.isEmpty() && !max.isEmpty()) {
+                        double minimun = Double.valueOf(min);
+                        double maximum = Double.valueOf(max);
+                        dataset.filterNumeric(filter.getColumn(), minimun, maximum, logic);
+                    }
+                } catch (NumberFormatException ex) {
+                    System.err.println("Bad number format");
+                }
+                break;
+            case "text":
+                String value = ((TextField) filter.getNodes()[1]).getText();
+                if (!value.isEmpty()) {
+                    dataset.filterText(filter.getColumn(), value, logic);
+                }
+                break;
+        }
+    }
+
+    /**
+     * Shows a pane to the user to save the filtered Rows in the Dataset in a file. This method will
+     * use a Saver to do the job. See Saver for mor details.
+     *
+     * @see Saver
+     */
     @FXML
     private void save() {
         File f = OS.saveTSV(TSVReader.getMainWindow());
@@ -282,26 +389,65 @@ public class MainViewController {
         }
     }
 
+    /**
+     * This is an internal representation of a Filter in the GUI. It stores type (text or numeric),
+     * the corresponding column in the table and the GUI elements where the user put the parameters
+     * (like TextFileds or ComboBoxes).
+     */
     private static class Filter {
 
+        /*
+         * TODO: Make an abstract class and two subclasses, one for numeric, one for text.
+         */
+        /**
+         * The nodes for the user parameters. First must be the Logic ComboBox.
+         */
         private final Node[] nodes;
-        private final int index;
+        /**
+         * The column in the table that is filtered.
+         */
+        private final int column;
+        /**
+         * The type of the column (text or numeric).
+         */
         private final String type;
 
-        private Filter(String type, int index, Node... nodes) {
+        /**
+         * The first node must be the ComboBox of the logic, then the user parameters.
+         *
+         * @param type the filter type.
+         * @param column the column in the table.
+         * @param nodes the parameters nodes.
+         */
+        private Filter(String type, int column, Node... nodes) {
             this.type = type;
             this.nodes = nodes;
-            this.index = index;
+            this.column = column;
         }
 
+        /**
+         * Gets the nodes from the GUI.
+         *
+         * @return the nodes.
+         */
         public Node[] getNodes() {
             return nodes;
         }
 
-        public int getIndex() {
-            return index;
+        /**
+         * Gets the column to filter.
+         *
+         * @return the column to filter.
+         */
+        public int getColumn() {
+            return column;
         }
 
+        /**
+         * Gets the type of the column.
+         *
+         * @return the type of the column.
+         */
         public String getType() {
             return type;
         }

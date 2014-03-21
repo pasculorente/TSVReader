@@ -25,11 +25,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This class only has one static method. This is the antonym of Parser. Using the headers and the
+ * cachedRows from the Dataset, it will create or override a file with the data.
  *
  * @author Pascual Lorente Arencibia
  */
 public class Saver {
 
+    /**
+     * Saves the data inside the dataset in the specified file. The first row will have the column
+     * names (header.getOrigin()) separated by tabulators. The data will be also stored separated by
+     * tabulators.
+     *
+     * @param dataset The dataset to store. only cachedRows will be stored.
+     * @param file The file where to store the data.
+     */
     public static void save(Dataset dataset, File file) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             // Write headers
@@ -47,9 +57,9 @@ public class Saver {
                 bw.newLine();
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(TSVData.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Saver.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(TSVData.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Saver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

@@ -25,23 +25,35 @@ import javafx.scene.layout.HBox;
 import tsvreader.Dataset.Logic;
 
 /**
- * FXML Controller class
+ * FXML Controller class for each GUI filter. Basically it has a pointer to each element.
  *
  * @author Pascual Lorente Arencibia
  */
 public class FilterViewController {
 
+    /**
+     * The name of the column.
+     */
     @FXML
     private Label name;
+    /**
+     * The logic ComboBox.
+     */
     @FXML
     private ComboBox logic;
+    /**
+     * The delete Button.
+     */
     @FXML
     private Button delete;
+    /**
+     * The box that stores the user parameters.
+     */
     @FXML
     private HBox values;
 
     /**
-     * Initializes the controller class.
+     * Initializes the controller class. Called automatically when the window is loaded.
      */
     public void initialize() {
         logic.setItems(FXCollections.observableArrayList(Logic.values()));

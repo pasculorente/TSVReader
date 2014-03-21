@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2014 UICHUIMI
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package tsvreader;
 
 import java.io.BufferedWriter;
@@ -9,11 +25,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * A special saver for SIFT files. There is only a mismatch, in the coordinates field, it only puts
+ * a 1 for the 3rd value.
  *
  * @author Pascual Lorente Arencibia
  */
 class SIFTSaver {
 
+    /**
+     * Takes a dataset representing a SIFT SNP file, and stores it trying to conserve the SIFT file
+     * structure.
+     *
+     * @param dataset a dataset containing a SIFT file representation.
+     * @param f the file where to save the data.
+     */
     static void save(Dataset dataset, File f) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(f))) {
             // Write headers
@@ -45,9 +70,9 @@ class SIFTSaver {
                 bw.newLine();
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(TSVData.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SIFTSaver.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(TSVData.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SIFTSaver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
