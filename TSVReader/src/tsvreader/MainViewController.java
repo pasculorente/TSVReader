@@ -30,10 +30,10 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -265,6 +265,9 @@ public class MainViewController {
             controller.getLogic().setOnAction((Event t) -> {
                 filter();
             });
+            controller.getEmpty().setOnAction((ActionEvent t) -> {
+                filter();
+            });
             switch (header.getType().toLowerCase()) {
                 case "numeric":
                     TextField min = new TextField();
@@ -280,7 +283,8 @@ public class MainViewController {
                     controller.getValues().getChildren().addAll(min, max);
                     filtersBox.getChildren().add(parent);
                     filters.
-                            add(new Filter(header.getType(), index, controller.getLogic(), min, max));
+                            add(new NumericFilter("numeric", index, controller.getLogic(),
+                                            controller.getEmpty(), min, max));
                     HBox.setHgrow(min, Priority.SOMETIMES);
                     HBox.setHgrow(max, Priority.SOMETIMES);
                     break;
@@ -296,7 +300,8 @@ public class MainViewController {
                     controller.getValues().getChildren().add(value);
                     HBox.setHgrow(value, Priority.SOMETIMES);
                     filtersBox.getChildren().add(parent);
-                    filters.add(new Filter(header.getType(), index, controller.getLogic(), value));
+                    filters.add(new TextFilter(header.getType(), index, controller.getLogic(),
+                            controller.getEmpty(), value));
                     break;
             }
         } catch (IOException ex) {
@@ -328,9 +333,7 @@ public class MainViewController {
     private void filter() {
         dataset.resetVariants();
         for (Filter filter : filters) {
-            ComboBox cb = (ComboBox) filter.nodes[0];
-            Dataset.Logic logic = (Dataset.Logic) cb.getValue();
-            filter(filter, logic);
+            filter(filter);
         }
         table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
         lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
@@ -344,25 +347,29 @@ public class MainViewController {
      * @param logic If it is a ONLY or a NOT filter.
      * @see Filter
      */
-    private void filter(Filter filter, Dataset.Logic logic) {
+    private void filter(Filter filter) {
+        Dataset.Logic logic = (Dataset.Logic) filter.getLogic().getValue();
+        boolean empty = filter.getEmpty().isSelected();
         switch (filter.getType().toLowerCase()) {
             case "numeric":
                 try {
-                    String min = ((TextField) filter.getNodes()[1]).getText();
-                    String max = ((TextField) filter.getNodes()[2]).getText();
+                    NumericFilter nFilter = (NumericFilter) filter;
+                    String min = nFilter.getMin().getText();
+                    String max = nFilter.getMax().getText();
+
                     if (!min.isEmpty() && !max.isEmpty()) {
                         double minimun = Double.valueOf(min);
                         double maximum = Double.valueOf(max);
-                        dataset.filterNumeric(filter.getColumn(), minimun, maximum, logic);
+                        dataset.filterNumeric(filter.getColumn(), minimun, maximum, logic, empty);
                     }
                 } catch (NumberFormatException ex) {
                     System.err.println("Bad number format");
                 }
                 break;
             case "text":
-                String value = ((TextField) filter.getNodes()[1]).getText();
+                String value = ((TextFilter) filter).getValue().getText();
                 if (!value.isEmpty()) {
-                    dataset.filterText(filter.getColumn(), value, logic);
+                    dataset.filterText(filter.getColumn(), value, logic, empty);
                 }
                 break;
         }
@@ -394,15 +401,18 @@ public class MainViewController {
      * the corresponding column in the table and the GUI elements where the user put the parameters
      * (like TextFileds or ComboBoxes).
      */
-    private static class Filter {
+    private abstract static class Filter {
 
         /*
          * TODO: Make an abstract class and two subclasses, one for numeric, one for text.
          */
         /**
-         * The nodes for the user parameters. First must be the Logic ComboBox.
+         * The nodes for the user parameters. First must be the Logic ComboBox, second the empty
+         * CheckBox.
          */
-        private final Node[] nodes;
+        //private final Node[] nodes;
+        private final ComboBox logic;
+        private final CheckBox empty;
         /**
          * The column in the table that is filtered.
          */
@@ -419,21 +429,22 @@ public class MainViewController {
          * @param column the column in the table.
          * @param nodes the parameters nodes.
          */
-        private Filter(String type, int column, Node... nodes) {
+        private Filter(String type, int column, ComboBox logic, CheckBox empty) {
             this.type = type;
-            this.nodes = nodes;
+            this.logic = logic;
+            this.empty = empty;
+//            this.nodes = nodes;
             this.column = column;
         }
 
-        /**
-         * Gets the nodes from the GUI.
-         *
-         * @return the nodes.
-         */
-        public Node[] getNodes() {
-            return nodes;
-        }
-
+//        /**
+//         * Gets the nodes from the GUI.
+//         *
+//         * @return the nodes.
+//         */
+//        public Node[] getNodes() {
+//            return nodes;
+//        }
         /**
          * Gets the column to filter.
          *
@@ -451,6 +462,50 @@ public class MainViewController {
         public String getType() {
             return type;
         }
+
+        public CheckBox getEmpty() {
+            return empty;
+        }
+
+        public ComboBox getLogic() {
+            return logic;
+        }
+
     }
 
+    private static class NumericFilter extends Filter {
+
+        private final TextField min, max;
+
+        public NumericFilter(String type, int column, ComboBox logic, CheckBox empty, TextField min,
+                TextField max) {
+            super(type, column, logic, empty);
+            this.min = min;
+            this.max = max;
+        }
+
+        public TextField getMax() {
+            return max;
+        }
+
+        public TextField getMin() {
+            return min;
+        }
+
+    }
+
+    private static class TextFilter extends Filter {
+
+        private final TextField value;
+
+        public TextFilter(String type, int column, ComboBox logic, CheckBox empty, TextField value) {
+            super(type, column, logic, empty);
+            this.value = value;
+        }
+
+        public TextField getValue() {
+            return value;
+        }
+
+    }
 }

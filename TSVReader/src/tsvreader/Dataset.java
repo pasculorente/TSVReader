@@ -117,23 +117,43 @@ public class Dataset {
      * @param logic Type of filter. Filter.ONLY for addition and Filter.NOT for subtraction.
      * @return the new cachedRows from Dataset.
      */
-    List<String[]> filterText(int column, String value, Logic logic) {
-        switch (logic) {
-            case ONLY:
-                List<String[]> origin = new ArrayList<>(cachedRows);
-                cachedRows.clear();
-                origin.stream().forEach((data) -> {
-                    if (data[column].matches(value)) {
-                        cachedRows.add(data);
-                    }
-                });
-                break;
-            case NOT:
-                rows.stream().forEach((data) -> {
-                    if (data[column].matches(value)) {
-                        cachedRows.remove(data);
-                    }
-                });
+    List<String[]> filterText(int column, String value, Logic logic, boolean allowEmpty) {
+        if (allowEmpty) {
+            switch (logic) {
+                case ONLY:
+                    List<String[]> origin = new ArrayList<>(cachedRows);
+                    cachedRows.clear();
+                    origin.stream().forEach((data) -> {
+                        if (data[column].isEmpty() || data[column].matches(value)) {
+                            cachedRows.add(data);
+                        }
+                    });
+                    break;
+                case NOT:
+                    rows.stream().forEach((data) -> {
+                        if (data[column].isEmpty() || data[column].matches(value)) {
+                            cachedRows.remove(data);
+                        }
+                    });
+            }
+        } else {
+            switch (logic) {
+                case ONLY:
+                    List<String[]> origin = new ArrayList<>(cachedRows);
+                    cachedRows.clear();
+                    origin.stream().forEach((data) -> {
+                        if (data[column].matches(value)) {
+                            cachedRows.add(data);
+                        }
+                    });
+                    break;
+                case NOT:
+                    rows.stream().forEach((data) -> {
+                        if (data[column].matches(value)) {
+                            cachedRows.remove(data);
+                        }
+                    });
+            }
         }
         return cachedRows;
     }
@@ -148,41 +168,81 @@ public class Dataset {
      * @param logic Type of filter. Filter.ONLY for addition and Filter.NOT for subtraction.
      * @return the new cachedRows from Dataset.
      */
-    List<String[]> filterNumeric(int column, double min, double max, Logic logic) {
-        switch (logic) {
-            case ONLY:
-                List<String[]> origin = new ArrayList<>(cachedRows);
-                cachedRows.clear();
-                try {
-                    origin.stream().forEach((data) -> {
-                        if (data[column] != null && !data[column].isEmpty()) {
-                            String[] values = data[column].split(",");
-                            for (String value : values) {
-                                Double val = Double.valueOf(value);
-                                if (min <= val && val <= max) {
-                                    cachedRows.add(data);
+    List<String[]> filterNumeric(int column, double min, double max, Logic logic, boolean allowEmpty) {
+        if (allowEmpty) {
+            switch (logic) {
+                case ONLY:
+                    List<String[]> origin = new ArrayList<>(cachedRows);
+                    cachedRows.clear();
+                    try {
+                        origin.stream().forEach((data) -> {
+                            if (data[column].isEmpty()) {
+                                cachedRows.add(data);
+                            } else {
+                                String[] values = data[column].split(",");
+                                for (String value : values) {
+                                    Double val = Double.valueOf(value);
+                                    if (min <= val && val <= max) {
+                                        cachedRows.add(data);
+                                    }
                                 }
                             }
-                        }
-                    });
-                } catch (NumberFormatException ex) {
-                }
-                break;
-            case NOT:
-                try {
-                    rows.stream().forEach((data) -> {
-                        if (data[column] != null && !data[column].isEmpty()) {
-                            String[] values = data[column].split(",");
-                            for (String value : values) {
-                                Double val = Double.valueOf(value);
-                                if (min <= val && val <= max) {
-                                    cachedRows.remove(data);
+                        });
+                    } catch (NumberFormatException ex) {
+                    }
+                    break;
+                case NOT:
+                    try {
+                        rows.stream().forEach((data) -> {
+                            if (data[column] != null && !data[column].isEmpty()) {
+                                String[] values = data[column].split(",");
+                                for (String value : values) {
+                                    Double val = Double.valueOf(value);
+                                    if (min <= val && val <= max) {
+                                        cachedRows.remove(data);
+                                    }
                                 }
                             }
-                        }
-                    });
-                } catch (NumberFormatException ex) {
-                }
+                        });
+                    } catch (NumberFormatException ex) {
+                    }
+            }
+        } else {
+            switch (logic) {
+                case ONLY:
+                    List<String[]> origin = new ArrayList<>(cachedRows);
+                    cachedRows.clear();
+                    try {
+                        origin.stream().forEach((data) -> {
+                            if (data[column] != null && !data[column].isEmpty()) {
+                                String[] values = data[column].split(",");
+                                for (String value : values) {
+                                    Double val = Double.valueOf(value);
+                                    if (min <= val && val <= max) {
+                                        cachedRows.add(data);
+                                    }
+                                }
+                            }
+                        });
+                    } catch (NumberFormatException ex) {
+                    }
+                    break;
+                case NOT:
+                    try {
+                        rows.stream().forEach((data) -> {
+                            if (data[column] != null && !data[column].isEmpty()) {
+                                String[] values = data[column].split(",");
+                                for (String value : values) {
+                                    Double val = Double.valueOf(value);
+                                    if (min <= val && val <= max) {
+                                        cachedRows.remove(data);
+                                    }
+                                }
+                            }
+                        });
+                    } catch (NumberFormatException ex) {
+                    }
+            }
         }
         return cachedRows;
     }

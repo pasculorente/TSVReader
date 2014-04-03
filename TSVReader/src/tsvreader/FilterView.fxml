@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
-<?import java.util.*?>
 <?import javafx.collections.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="tsvreader.FilterViewController">
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tsvreader.FilterViewController">
   <children>
     <HBox alignment="CENTER" spacing="5.0">
       <children>
@@ -21,7 +19,9 @@
               <String fx:value="Item 3" />
             </FXCollections>
           </items>
-        </ComboBox>
+        </ComboBox><CheckBox fx:id="empty" alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" mnemonicParsing="false" selected="true" textAlignment="CENTER" textOverrun="ELLIPSIS">
+<tooltip><Tooltip text="Allow empty values" />
+</tooltip></CheckBox>
         <Button fx:id="delete" mnemonicParsing="false" text="X" />
       </children>
     </HBox>
