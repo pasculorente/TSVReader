@@ -118,11 +118,11 @@ public class Dataset {
      * @return the new cachedRows from Dataset.
      */
     List<String[]> filterText(int column, String value, Logic logic, boolean allowEmpty) {
+        List<String[]> origin = new ArrayList<>(cachedRows);
+        cachedRows.clear();
         if (allowEmpty) {
             switch (logic) {
                 case ONLY:
-                    List<String[]> origin = new ArrayList<>(cachedRows);
-                    cachedRows.clear();
                     origin.stream().forEach((data) -> {
                         if (data[column].isEmpty() || data[column].matches(value)) {
                             cachedRows.add(data);
@@ -130,27 +130,24 @@ public class Dataset {
                     });
                     break;
                 case NOT:
-                    rows.stream().forEach((data) -> {
-                        if (data[column].isEmpty() || data[column].matches(value)) {
-                            cachedRows.remove(data);
+                    origin.stream().forEach((data) -> {
+                        if (data[column].isEmpty() || !data[column].matches(value)) {
+                            cachedRows.add(data);
                         }
                     });
             }
         } else {
             switch (logic) {
                 case ONLY:
-                    List<String[]> origin = new ArrayList<>(cachedRows);
-                    cachedRows.clear();
-                    origin.stream().forEach((data) -> {
-                        if (data[column].matches(value)) {
-                            cachedRows.add(data);
-                        }
+                    origin.stream().filter((String[] data) -> data[column].matches(value)).
+                            forEach((String[] t) -> {
+                        cachedRows.add(t);
                     });
                     break;
                 case NOT:
-                    rows.stream().forEach((data) -> {
-                        if (data[column].matches(value)) {
-                            cachedRows.remove(data);
+                    origin.parallelStream().forEach((data) -> {
+                        if (!data[column].matches(value)) {
+                            cachedRows.add(data);
                         }
                     });
             }
@@ -169,11 +166,11 @@ public class Dataset {
      * @return the new cachedRows from Dataset.
      */
     List<String[]> filterNumeric(int column, double min, double max, Logic logic, boolean allowEmpty) {
+        List<String[]> origin = new ArrayList<>(cachedRows);
+        cachedRows.clear();
         if (allowEmpty) {
             switch (logic) {
                 case ONLY:
-                    List<String[]> origin = new ArrayList<>(cachedRows);
-                    cachedRows.clear();
                     try {
                         origin.stream().forEach((data) -> {
                             if (data[column].isEmpty()) {
@@ -193,16 +190,17 @@ public class Dataset {
                     break;
                 case NOT:
                     try {
-                        rows.stream().forEach((data) -> {
-                            if (data[column] != null && !data[column].isEmpty()) {
-                                String[] values = data[column].split(",");
-                                for (String value : values) {
-                                    Double val = Double.valueOf(value);
-                                    if (min <= val && val <= max) {
-                                        cachedRows.remove(data);
-                                    }
+                        origin.stream().filter((String[] data) -> {
+                            String[] values = data[column].split(",");
+                            for (String value : values) {
+                                Double val = Double.valueOf(value);
+                                if (min <= val && val <= max) {
+                                    return false;
                                 }
                             }
+                            return true;
+                        }).forEach((String[] t) -> {
+                            cachedRows.add(t);
                         });
                     } catch (NumberFormatException ex) {
                     }
@@ -210,8 +208,6 @@ public class Dataset {
         } else {
             switch (logic) {
                 case ONLY:
-                    List<String[]> origin = new ArrayList<>(cachedRows);
-                    cachedRows.clear();
                     try {
                         origin.stream().forEach((data) -> {
                             if (data[column] != null && !data[column].isEmpty()) {
@@ -229,16 +225,20 @@ public class Dataset {
                     break;
                 case NOT:
                     try {
-                        rows.stream().forEach((data) -> {
-                            if (data[column] != null && !data[column].isEmpty()) {
-                                String[] values = data[column].split(",");
-                                for (String value : values) {
-                                    Double val = Double.valueOf(value);
-                                    if (min <= val && val <= max) {
-                                        cachedRows.remove(data);
-                                    }
+                        origin.stream().filter((String[] data) -> {
+                            if (data[column].isEmpty()) {
+                                return false;
+                            }
+                            String[] values = data[column].split(",");
+                            for (String value : values) {
+                                Double val = Double.valueOf(value);
+                                if (min <= val && val <= max) {
+                                    return false;
                                 }
                             }
+                            return true;
+                        }).forEach((String[] t) -> {
+                            cachedRows.add(t);
                         });
                     } catch (NumberFormatException ex) {
                     }

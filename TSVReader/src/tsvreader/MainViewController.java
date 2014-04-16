@@ -37,6 +37,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -181,6 +182,9 @@ public class MainViewController {
     private TableView<String[]> populateTable() {
         TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
                 getRows()));
+        TableColumn iColumn = new TableColumn("#");
+        iColumn.setCellFactory((Object p) -> new NumberedCell());
+        newTable.getColumns().add(iColumn);
         TableColumn groupColumn = null;
         for (int i = 0; i < dataset.getHeaders().size(); i++) {
             Header header = dataset.getHeaders().get(i);
@@ -282,9 +286,8 @@ public class MainViewController {
                     });
                     controller.getValues().getChildren().addAll(min, max);
                     filtersBox.getChildren().add(parent);
-                    filters.
-                            add(new NumericFilter("numeric", index, controller.getLogic(),
-                                            controller.getEmpty(), min, max));
+                    filters.add(new NumericFilter("numeric", index, controller.getLogic(),
+                            controller.getEmpty(), min, max));
                     HBox.setHgrow(min, Priority.SOMETIMES);
                     HBox.setHgrow(max, Priority.SOMETIMES);
                     break;
@@ -332,9 +335,7 @@ public class MainViewController {
      */
     private void filter() {
         dataset.resetVariants();
-        for (Filter filter : filters) {
-            filter(filter);
-        }
+        filters.forEach(this::filter);
         table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
         lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
                 + " in total)");
@@ -403,14 +404,6 @@ public class MainViewController {
      */
     private abstract static class Filter {
 
-        /*
-         * TODO: Make an abstract class and two subclasses, one for numeric, one for text.
-         */
-        /**
-         * The nodes for the user parameters. First must be the Logic ComboBox, second the empty
-         * CheckBox.
-         */
-        //private final Node[] nodes;
         private final ComboBox logic;
         private final CheckBox empty;
         /**
@@ -433,18 +426,9 @@ public class MainViewController {
             this.type = type;
             this.logic = logic;
             this.empty = empty;
-//            this.nodes = nodes;
             this.column = column;
         }
 
-//        /**
-//         * Gets the nodes from the GUI.
-//         *
-//         * @return the nodes.
-//         */
-//        public Node[] getNodes() {
-//            return nodes;
-//        }
         /**
          * Gets the column to filter.
          *
@@ -505,6 +489,40 @@ public class MainViewController {
 
         public TextField getValue() {
             return value;
+        }
+
+    }
+
+    @FXML private void combine() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("CombinePane.fxml"));
+            Parent parent = loader.load();
+            CombinePaneController controller = loader.getController();
+            Stage s = new Stage();
+            s.setTitle("Combine two files");
+            s.setScene(new Scene(parent));
+            s.showAndWait();
+            if (dataset != null) {
+                dataset = controller.getDataset();
+                lines.textProperty().unbind();
+                lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
+                        + " in total)");
+                loadFilters();
+                saveButton.setDisable(false);
+                table = populateTable();
+                tableContainer.setContent(table);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+    }
+
+    private class NumberedCell extends TableCell {
+
+        @Override
+        protected void updateItem(Object t, boolean bln) {
+            setText(getIndex() + "");
         }
 
     }

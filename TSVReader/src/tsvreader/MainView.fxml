@@ -6,7 +6,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="tsvreader.MainViewController">
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tsvreader.MainViewController">
   <center>
     <SplitPane dividerPositions="0.20050125313283207" focusTraversable="true" prefHeight="160.0" prefWidth="200.0">
       <items>
@@ -47,7 +47,7 @@
     <HBox prefHeight="-1.0" prefWidth="-1.0" spacing="5.0" BorderPane.alignment="TOP_LEFT">
       <children>
         <Button fx:id="openButton" mnemonicParsing="false" onAction="#load" text="Open" />
-        <Button fx:id="saveButton" mnemonicParsing="false" onAction="#save" text="Save" />
+        <Button fx:id="saveButton" mnemonicParsing="false" onAction="#save" text="Save" /><Button mnemonicParsing="false" onAction="#combine" text="Combine" />
       </children>
       <padding>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

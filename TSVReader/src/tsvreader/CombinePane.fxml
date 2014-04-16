@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" spacing="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tsvreader.CombinePaneController">
+    <children><Label text="Files" /><HBox alignment="TOP_CENTER" spacing="5.0">
+<children>
+        <TextField fx:id="firstFile" onAction="#openFirstFile" onMouseClicked="#openFirstFile" promptText="First file" HBox.hgrow="SOMETIMES" /><Separator orientation="VERTICAL" />
+        <TextField fx:id="secondFile" onAction="#openSecondFile" onMouseClicked="#openSecondFile" promptText="Second file" HBox.hgrow="SOMETIMES" />
+</children></HBox><Separator />
+                        <Label text="Columns to match" /><Button mnemonicParsing="false" onAction="#addMatchingColumn" text="Add" />
+                <VBox fx:id="matchingColumns" /><Separator /><Label text="Columns to show" /><HBox alignment="TOP_CENTER">
+<children><VBox fx:id="firstShowColumns" spacing="5.0" /><Separator orientation="VERTICAL" /><VBox fx:id="secondShowColumns" spacing="5.0" />
+</children></HBox><Separator />
+        <Button mnemonicParsing="false" onAction="#match" text="Go" /><Label fx:id="message" /><StackPane prefHeight="150.0" prefWidth="200.0">
+<children><ProgressBar fx:id="progressBar" prefWidth="200.0" progress="0.0" /><Label fx:id="progressText" />
+</children></StackPane>
+    </children>
+<padding>
+<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+</padding>
+</VBox>

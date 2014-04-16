@@ -16,7 +16,13 @@
  */
 package tsvreader;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
@@ -107,4 +113,49 @@ public class OS {
         return null;
     }
 
+    /**
+     * Opens a BufferedReader to read a simple text file.
+     *
+     * @param input the file.
+     * @return a BufferedReader
+     * @throws FileNotFoundException
+     */
+    public static BufferedReader openTextBR(File input) throws FileNotFoundException {
+        return new BufferedReader(new FileReader(input));
+    }
+
+    /**
+     * Opens a BufferedWriter
+     *
+     * @param output
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static BufferedWriter openTextBW(File output) throws FileNotFoundException, IOException {
+        return new BufferedWriter(new FileWriter(output));
+    }
+
+    /**
+     * Opens a BufferedReader to read a simple text file.
+     *
+     * @param input the file.
+     * @return a BufferedReader
+     * @throws FileNotFoundException
+     */
+    public static BufferedReader openTextBR(String input) throws FileNotFoundException {
+        return new BufferedReader(new FileReader(input));
+    }
+
+    /**
+     * Opens a BufferedWriter
+     *
+     * @param output
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static BufferedWriter openTextBW(String output) throws FileNotFoundException, IOException {
+        return new BufferedWriter(new FileWriter(output));
+    }
 }
