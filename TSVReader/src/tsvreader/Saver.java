@@ -56,9 +56,12 @@ public class Saver {
                 bw.write(row[row.length - 1]);
                 bw.newLine();
             }
+            MainViewController.printMessage("Succesful save: " + file);
         } catch (FileNotFoundException ex) {
+            MainViewController.printMessage("File not writable, check your permissions: " + file);
             Logger.getLogger(Saver.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
+            MainViewController.printMessage("Some big problem with file: " + file);
             Logger.getLogger(Saver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

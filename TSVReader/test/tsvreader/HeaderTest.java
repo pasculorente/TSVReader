@@ -17,7 +17,7 @@ public class HeaderTest {
 
     @Before
     public void initHeader() {
-        h = new Header("Chr", "", "chr", "text", "Chromosome");
+        h = new Header("Chr", "text", "Chromosome", "");
     }
 
     /**
@@ -25,7 +25,7 @@ public class HeaderTest {
      */
     @Test
     public void testGetDescription() {
-        assertEquals("chr", h.getName());
+        assertEquals("", h.getDescription());
     }
 
     /**
@@ -33,15 +33,7 @@ public class HeaderTest {
      */
     @Test
     public void testGetName() {
-        assertEquals("text", h.getType());
-    }
-
-    /**
-     * Test of getParent method, of class Header.
-     */
-    @Test
-    public void testGetParent() {
-        assertEquals("Chromosome", h.getDescription());
+        assertEquals("Chromosome", h.getName());
     }
 
     /**
@@ -49,7 +41,7 @@ public class HeaderTest {
      */
     @Test
     public void testGetType() {
-        assertEquals("", h.getParent());
+        assertEquals("text", h.getType());
     }
 
     /**

@@ -233,14 +233,14 @@ public class CombinePaneController {
                         }
                     });
                 } catch (ArrayIndexOutOfBoundsException ex) {
-                    System.out.println("Warning. Some rows could not loaded"
+                    MainViewController.printMessage("Warning. Some rows could not loaded"
                             + " because they are shorter than header.");
                 }
                 fShowIndex.stream().forEach((Integer i) -> {
-                    headers.add(new Header(fHeads[i], "", fHeads[i], "text", ""));
+                    headers.add(new Header(fHeads[i], "text", fHeads[i], ""));
                 });
                 sShowIndex.stream().forEach((Integer i) -> {
-                    headers.add(new Header(sHeads[i], "", sHeads[i], "text", ""));
+                    headers.add(new Header(sHeads[i], "text", sHeads[i], ""));
                 });
                 dataset = new Dataset(headers, rows);
                 System.out.println(rows.size() + " matches.");

@@ -65,10 +65,10 @@ public class Parser extends Task<Dataset> {
 
     /**
      * Parses a single line from the file. The line is passed as a String[], with fields already
-     * splitted.
+     * split.
      *
      * @param inHeaders Columns as they are in the file.
-     * @param line The splitted line.
+     * @param line The split line.
      * @param outHeaders Headers as read from headers file.
      * @return an array with the fields for the dataset.
      */
@@ -98,13 +98,25 @@ public class Parser extends Task<Dataset> {
             String line;
             String[] fields;
             while ((line = br.readLine()) != null) {
-                fields = line.split(":");
-                if (fields.length < 4) {
-                    System.err.println("Header bad formed: " + line);
+                if (line.startsWith("#")) {
                     continue;
                 }
-                headers.add(new Header(fields[0], fields[1], fields[2], fields[3], fields.length > 4
-                        ? fields[4] : ""));
+                fields = line.split(":");
+                if (fields.length < 2) {
+                    MainViewController.printMessage("Header bad formed: " + line);
+                    continue;
+                }
+                // origin:type:alias:description
+                // Fields alias and description are optional
+                final String origin = fields[0];
+                final String type = fields[1];
+                // If alias is empty or not specified, falls back to origin.
+                final String alias = fields.length <= 2 ? origin
+                        : (fields[2].isEmpty() ? origin : fields[2]);
+                // If description is empty or not specified, falls back to alias.
+                final String description = fields.length <= 3 ? alias
+                        : (fields[3].isEmpty() ? alias : fields[3]);
+                headers.add(new Header(origin, type, alias, description));
             }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(SIFTParser.class.getName()).log(Level.SEVERE, null, ex);
@@ -162,6 +174,6 @@ public class Parser extends Task<Dataset> {
                 i++;
             }
         }
-        System.out.println(c + " missed columns.");
+        MainViewController.printMessage(c + " missed columns.");
     }
 }

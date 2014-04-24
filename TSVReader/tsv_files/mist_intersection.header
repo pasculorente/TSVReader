@@ -1,10 +1,10 @@
-chrom:coordinates:chrom:text:Chromosome
-startexon:coordinates:start:numeric:Start of exon
-endexon:coordinates:end:numeric:End of exon
-gene_id:Gene:id:text
-gene_name:Gene:name:text
-num_exon:Exon:number:numeric
-exon_id:Exon:id:text
-trans_name:Exon:Trans Name:text
-trans_info:Exon:Trans info:text
-gene_bio::Biotype:text
+chrom:text:Chromosome
+startexon:numeric:Start of exon
+endexon:numeric:End of exon
+gene_id:text:Gene id
+gene_name:text:Gene name
+num_exon:numeric:Exon number
+exon_id:text:Exon id
+trans_name:Transcript Name
+trans_info:text:Trans info
+gene_bio:text:Biotype

@@ -20,11 +20,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -81,7 +85,9 @@ public class MainViewController {
      */
     @FXML
     private ComboBox filtersComboBox;
-
+    @FXML
+    private Label message;
+    private static Label staticMessage;
     /**
      * THE TABLE!!!!.
      */
@@ -109,6 +115,7 @@ public class MainViewController {
      * loaded.
      */
     public void initialize() {
+        staticMessage = message;
         filters = new ArrayList<>();
         saveButton.setDisable(true);
         filtersComboBox.getItems().clear();
@@ -170,6 +177,7 @@ public class MainViewController {
         saveButton.setDisable(false);
         table = populateTable();
         tableContainer.setContent(table);
+        new Thread(new StatsRunner()).start();
     }
 
     /**
@@ -182,10 +190,9 @@ public class MainViewController {
     private TableView<String[]> populateTable() {
         TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
                 getRows()));
-        TableColumn iColumn = new TableColumn("#");
-        iColumn.setCellFactory((Object p) -> new NumberedCell());
-        newTable.getColumns().add(iColumn);
-        TableColumn groupColumn = null;
+        //TableColumn iColumn = new TableColumn("#");
+        //iColumn.setCellFactory((Object p) -> new NumberedCell());
+        //newTable.getColumns().add(iColumn);
         for (int i = 0; i < dataset.getHeaders().size(); i++) {
             Header header = dataset.getHeaders().get(i);
             TableColumn<String[], String> aColumn = new TableColumn<>(header.getName());
@@ -194,24 +201,7 @@ public class MainViewController {
                 return new SimpleStringProperty(index < row.getValue().length
                         ? row.getValue()[index] : "");
             });
-            if (header.getParent().isEmpty()) {
-                if (groupColumn != null) {
-                    newTable.getColumns().add(groupColumn);
-                }
-                newTable.getColumns().add(aColumn);
-                groupColumn = null;
-            } else if (groupColumn != null && groupColumn.getText().equals(header.getParent())) {
-                groupColumn.getColumns().add(aColumn);
-            } else {
-                if (groupColumn != null) {
-                    newTable.getColumns().add(groupColumn);
-                }
-                groupColumn = new TableColumn(header.getParent());
-                groupColumn.getColumns().add(aColumn);
-            }
-        }
-        if (groupColumn != null) {
-            newTable.getColumns().add(groupColumn);
+            newTable.getColumns().add(aColumn);
         }
         newTable.setSortPolicy((TableView<String[]> p) -> {
             return false;
@@ -229,7 +219,7 @@ public class MainViewController {
         filtersComboBox.getItems().clear();
         for (int i = 0; i < dataset.getHeaders().size(); i++) {
             Header header = dataset.getHeaders().get(i);
-            filtersComboBox.getItems().add(header.getParent() + ":" + header.getName());
+            filtersComboBox.getItems().add(header.getName());
         }
     }
 
@@ -261,7 +251,7 @@ public class MainViewController {
                 return;
             }
             controller = loader.getController();
-            controller.getName().setText(header.getParent() + ":" + header.getName());
+            controller.getName().setText(header.getName());
             controller.getName().setTooltip(new Tooltip(header.getDescription()));
             controller.getDelete().setOnAction((ActionEvent t) -> {
                 removeFilter(parent);
@@ -339,6 +329,7 @@ public class MainViewController {
         table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
         lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
                 + " in total)");
+        new Thread(new StatsRunner()).start();
     }
 
     /**
@@ -364,7 +355,7 @@ public class MainViewController {
                         dataset.filterNumeric(filter.getColumn(), minimun, maximum, logic, empty);
                     }
                 } catch (NumberFormatException ex) {
-                    System.err.println("Bad number format");
+                    printMessage("Bad number format");
                 }
                 break;
             case "text":
@@ -395,6 +386,37 @@ public class MainViewController {
             }
 
         }
+    }
+
+    @FXML private void combine() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("CombinePane.fxml"));
+            Parent parent = loader.load();
+            CombinePaneController controller = loader.getController();
+            Stage s = new Stage();
+            s.setTitle("Combine two files");
+            s.setScene(new Scene(parent));
+            s.showAndWait();
+            if (dataset != null) {
+                dataset = controller.getDataset();
+                lines.textProperty().unbind();
+                lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
+                        + " in total)");
+                loadFilters();
+                saveButton.setDisable(false);
+                table = populateTable();
+                tableContainer.setContent(table);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+    }
+
+    public static void printMessage(String message) {
+        Platform.runLater(() -> {
+            staticMessage.setText(message);
+        });
     }
 
     /**
@@ -493,30 +515,37 @@ public class MainViewController {
 
     }
 
-    @FXML private void combine() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("CombinePane.fxml"));
-            Parent parent = loader.load();
-            CombinePaneController controller = loader.getController();
-            Stage s = new Stage();
-            s.setTitle("Combine two files");
-            s.setScene(new Scene(parent));
-            s.showAndWait();
-            if (dataset != null) {
-                dataset = controller.getDataset();
-                lines.textProperty().unbind();
-                lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
-                        + " in total)");
-                loadFilters();
-                saveButton.setDisable(false);
-                table = populateTable();
-                tableContainer.setContent(table);
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+    private class StatsRunner extends Task<Void> {
 
+        @Override
+        protected Void call() throws Exception {
+            System.out.println("You called StatsRunner");
+            List<Map<String, Integer>> values = new ArrayList<>(dataset.getHeaders().size());
+            dataset.getHeaders().forEach((Header header) -> {
+                values.add(new TreeMap<>());
+            });
+            dataset.getCachedRows().forEach((String[] row) -> {
+                for (int column = 0; column < row.length; column++) {
+                    final Map<String, Integer> map = values.get(column);
+                    if (map.containsKey(row[column])) {
+                        map.put(row[column], map.get(row[column]) + 1);
+                    } else {
+                        map.put(row[column], 1);
+                    }
+                }
+            });
+            for (int i = 0; i < values.size(); i++) {
+                final int index = i;
+                Platform.runLater(() -> {
+                    table.getColumns().get(index).setText(dataset.getHeaders().get(index).getName()
+                            + "\n" + values.get(index).size());
+                });
+            }
+            System.out.println("I finished");
+            return null;
         }
-    }
+
+    };
 
     private class NumberedCell extends TableCell {
 

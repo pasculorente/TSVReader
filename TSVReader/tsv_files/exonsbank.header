@@ -1,10 +1,10 @@
-CHROM::Chromosome:text
-GENE_ID:Gene:ID:Text:Gene identification
-GENE_NAME:Gene:Name:Text:Gene name
-EXON_NUMBER:Exon:Number:Numeric:Exon number
-EXON_START:Exon:Start:Numeric:Exon start
-EXON_END:Exon:End:Numeric:Exon end
-EXON_NAME:Exon:Name:Text:Exon name
-INFO::Info:Text:Additional information
-TYPE::Type:Text:Type of gene
-EXON_ID::Exon ID:Text:Exon identification
+CHROM:text:Chromosome
+GENE_ID:Text:Gene ID:Gene identification
+GENE_NAME:text:Gene name
+EXON_NUMBER:Numeric:Exon number
+EXON_START:Numeric:Exon start
+EXON_END:Numeric:Exon end
+EXON_NAME:Text:Exon name
+INFO:Text:Additional information
+TYPE:Text:Type of gene
+EXON_ID:Text:Exon identification

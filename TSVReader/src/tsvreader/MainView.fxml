@@ -54,4 +54,6 @@
       </padding>
     </HBox>
   </top>
+<bottom><Label fx:id="message" text="TSVReader" />
+</bottom>
 </BorderPane>

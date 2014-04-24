@@ -37,10 +37,6 @@ public class Header {
      */
     private final String type;
     /**
-     * The name of the parent group column.
-     */
-    private final String parent;
-    /**
      * The name of the column in the file.
      */
     private final String origin;
@@ -55,11 +51,10 @@ public class Header {
      * @param type The type of the column (numeric or text).
      * @param desc The description of the column.
      */
-    Header(String origin, String parent, String name, String type, String desc) {
+    Header(String origin, String type, String name, String desc) {
         this.origin = origin;
         this.name = name;
         this.description = desc;
-        this.parent = parent;
         this.type = type;
     }
 
@@ -80,15 +75,6 @@ public class Header {
      */
     public String getName() {
         return name;
-    }
-
-    /**
-     * Gets the Parent name of the header.
-     *
-     * @return the parent.
-     */
-    public String getParent() {
-        return parent;
     }
 
     /**
@@ -116,8 +102,7 @@ public class Header {
      */
     @Override
     public String toString() {
-        return getOrigin() + ":" + getParent() + ":" + getName() + ":" + getType() + ":"
-                + getDescription();
+        return getOrigin() + ":" + ":" + getType() + ":" + getName() + ":" + getDescription();
     }
 
 }
