@@ -39,8 +39,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -201,11 +203,14 @@ public class MainViewController {
                 return new SimpleStringProperty(index < row.getValue().length
                         ? row.getValue()[index] : "");
             });
+            aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
             newTable.getColumns().add(aColumn);
         }
         newTable.setSortPolicy((TableView<String[]> p) -> {
             return false;
         });
+        newTable.setEditable(true);
+        newTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         return newTable;
     }
 
@@ -546,6 +551,60 @@ public class MainViewController {
         }
 
     };
+
+    private class CopiableCell extends TableCell<String[], String> {
+
+        private TextField textField;
+
+        @Override
+        public void startEdit() {
+            super.startEdit();
+
+            if (textField == null) {
+                createTextField();
+            }
+
+            setGraphic(textField);
+            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            textField.selectAll();
+        }
+
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+
+            setText(String.valueOf(getItem()));
+            setContentDisplay(ContentDisplay.TEXT_ONLY);
+        }
+
+        @Override
+        public void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (empty) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                if (isEditing()) {
+                    if (textField != null) {
+                        textField.setText(getItem());
+                    }
+                    setGraphic(textField);
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                } else {
+                    setText(getItem());
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
+                }
+            }
+        }
+
+        private void createTextField() {
+            textField = new TextField(getItem());
+            textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
+            textField.setEditable(false);
+            textField.selectAll();
+        }
+    }
 
     private class NumberedCell extends TableCell {
 
