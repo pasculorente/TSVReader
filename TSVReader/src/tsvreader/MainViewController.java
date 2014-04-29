@@ -34,6 +34,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -192,12 +193,11 @@ public class MainViewController {
     private TableView<String[]> populateTable() {
         TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
                 getRows()));
-        //TableColumn iColumn = new TableColumn("#");
-        //iColumn.setCellFactory((Object p) -> new NumberedCell());
-        //newTable.getColumns().add(iColumn);
         for (int i = 0; i < dataset.getHeaders().size(); i++) {
             Header header = dataset.getHeaders().get(i);
-            TableColumn<String[], String> aColumn = new TableColumn<>(header.getName());
+            TableColumn<String[], String> aColumn = new TableColumn<>();
+            aColumn.setText(null);
+            aColumn.setGraphic(new HeaderVbox(header.getName(), header.getDescription()));
             final int index = i;
             aColumn.setCellValueFactory((TableColumn.CellDataFeatures<String[], String> row) -> {
                 return new SimpleStringProperty(index < row.getValue().length
@@ -205,6 +205,7 @@ public class MainViewController {
             });
             aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
             newTable.getColumns().add(aColumn);
+
         }
         newTable.setSortPolicy((TableView<String[]> p) -> {
             return false;
@@ -402,16 +403,14 @@ public class MainViewController {
             s.setTitle("Combine two files");
             s.setScene(new Scene(parent));
             s.showAndWait();
-            if (dataset != null) {
-                dataset = controller.getDataset();
-                lines.textProperty().unbind();
-                lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
-                        + " in total)");
-                loadFilters();
-                saveButton.setDisable(false);
-                table = populateTable();
-                tableContainer.setContent(table);
-            }
+            dataset = controller.getDataset();
+            lines.textProperty().unbind();
+            lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
+                    + " in total)");
+            loadFilters();
+            saveButton.setDisable(false);
+            table = populateTable();
+            tableContainer.setContent(table);
         } catch (IOException ex) {
             Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
 
@@ -524,7 +523,6 @@ public class MainViewController {
 
         @Override
         protected Void call() throws Exception {
-            System.out.println("You called StatsRunner");
             List<Map<String, Integer>> values = new ArrayList<>(dataset.getHeaders().size());
             dataset.getHeaders().forEach((Header header) -> {
                 values.add(new TreeMap<>());
@@ -542,11 +540,12 @@ public class MainViewController {
             for (int i = 0; i < values.size(); i++) {
                 final int index = i;
                 Platform.runLater(() -> {
-                    table.getColumns().get(index).setText(dataset.getHeaders().get(index).getName()
-                            + "\n" + values.get(index).size());
+                    HeaderVbox header = (HeaderVbox) table.getColumns().get(index).getGraphic();
+                    header.count.setText(values.get(index).size() + "");
+//                    table.getColumns().get(index).setText(dataset.getHeaders().get(index).getName()
+//                            + "\n" + values.get(index).size());
                 });
             }
-            System.out.println("I finished");
             return null;
         }
 
@@ -614,4 +613,19 @@ public class MainViewController {
         }
 
     }
+
+    private class HeaderVbox extends VBox {
+
+        Label title, count;
+
+        public HeaderVbox(String title, String description) {
+            this.title = new Label(title);
+            this.count = new Label();
+            setAlignment(Pos.TOP_CENTER);
+            getChildren().addAll(this.title, this.count);
+            this.title.setTooltip(new Tooltip(description));
+        }
+
+    }
+
 }

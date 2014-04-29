@@ -113,7 +113,7 @@ public class CombinePaneController {
     }
 
     private List<String> readHeaders(File file) {
-        ArrayList<String> list = new ArrayList();
+        List<String> list = new ArrayList();
         try (BufferedReader br = OS.openTextBR(file)) {
             String firstLine = br.readLine();
             list.addAll(Arrays.asList(firstLine.split("\t")));
@@ -166,6 +166,8 @@ public class CombinePaneController {
                     ComboBox sc = (ComboBox) hbox.getChildren().get(2);
                     fmatchingIndex.add(fc.getSelectionModel().getSelectedIndex());
                     smatchingIndex.add(sc.getSelectionModel().getSelectedIndex());
+                    System.out.println(fc.getSelectionModel().getSelectedItem() + " <> "
+                            + sc.getSelectionModel().getSelectedItem());
                 });
                 // Show indexes (columns to show).
                 updateProgress(1, 10);
@@ -204,18 +206,28 @@ public class CombinePaneController {
                 List<String[]> rows = new ArrayList<>();
                 int rowWidth = fShowIndex.size() + sShowIndex.size();
                 // Double bouble. Can be improved if both files are sorted.
+                // Must be improved.
+                // Two files of 300k -> 80lines/second
                 try {
-                    f1.stream().forEach(new Consumer<String[]>() {
+                    f1.parallelStream().forEachOrdered(new Consumer<String[]>() {
                         int progress = 0;
+                        int lastAccess = 0;
 
                         @Override
                         public void accept(String[] l1) {
                             updateProgress(progress++, f1.size());
-                            f2.stream().forEach((String[] l2) -> {
+                            updateMessage("(4/4) Combinig files (" + progress + "/" + f1.size()
+                                    + " lines processed)");
+                            int index = lastAccess;
+                            while (index != lastAccess - 1) {
+//                            for (String[] l2 : f2) {
+                                String[] l2 = f2.get(index);
+                                index = (index + 1) % f2.size();
                                 boolean match = true;
                                 for (int i = 0; i < fmatchingIndex.size(); i++) {
                                     if (!l1[fmatchingIndex.get(i)].equals(l2[smatchingIndex.get(i)])) {
                                         match = false;
+                                        break;
                                     }
                                 }
                                 if (match) {
@@ -228,8 +240,10 @@ public class CombinePaneController {
                                         cRow[p++] = l2[i];
                                     }
                                     rows.add(cRow);
+                                    break;
                                 }
-                            });
+                            }
+                            lastAccess = index;
                         }
                     });
                 } catch (ArrayIndexOutOfBoundsException ex) {
@@ -243,13 +257,11 @@ public class CombinePaneController {
                     headers.add(new Header(sHeads[i], "text", sHeads[i], ""));
                 });
                 dataset = new Dataset(headers, rows);
-                System.out.println(rows.size() + " matches.");
+                MainViewController.printMessage(rows.size() + " matches.");
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(CombinePaneController.class.getName()).log(Level.SEVERE, null,
-                        ex);
+                Logger.getLogger(CombinePaneController.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
-                Logger.getLogger(CombinePaneController.class.getName()).log(Level.SEVERE, null,
-                        ex);
+                Logger.getLogger(CombinePaneController.class.getName()).log(Level.SEVERE, null, ex);
             }
             return dataset;
         }
