@@ -26,7 +26,7 @@ import javafx.scene.control.TextField;
  */
 public class TextFilter extends Filter {
 
-    final TextField valueTextField;
+    private final TextField valueTextField;
 
     public TextFilter(String type, int column, ComboBox logic, CheckBox empty, TextField value) {
         super(type, column, logic, empty);
@@ -39,6 +39,9 @@ public class TextFilter extends Filter {
 
     @Override
     public boolean accept(String value) {
+        if (valueTextField.getText().isEmpty()) {
+            return true;
+        }
         if (value.isEmpty() && getEmpty().isSelected()) {
             return true;
         }

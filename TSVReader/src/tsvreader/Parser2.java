@@ -23,6 +23,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -40,23 +43,22 @@ import tsvreader.filter.Filter;
 public class Parser2 {
 
     private final File database, headerFile;
-    private Dataset dataset;
     private ObservableList<String[]> rows;
     private List<Header> headers;
     private final SimpleIntegerProperty lines;
     private final List<Filter> filters;
     private int[] cIndexes;
+    private final List<Map<String, Integer>> statsMap;
+    private final List<SimpleIntegerProperty> stats;
 
     public Parser2(File database, File headerFile) {
         this.database = database;
         this.headerFile = headerFile;
         this.filters = new ArrayList<>();
         this.lines = new SimpleIntegerProperty();
+        stats = new ArrayList<>();
+        statsMap = FXCollections.observableArrayList();
         initialize();
-    }
-
-    public Dataset getDataset() {
-        return dataset;
     }
 
     public ObservableList<String[]> getRows() {
@@ -117,6 +119,8 @@ public class Parser2 {
                 final String description = fields.length <= 3 ? alias
                         : (fields[3].isEmpty() ? alias : fields[3]);
                 headers.add(new Header(origin, type, alias, description));
+                // Each header has an associate stat column.
+                statsMap.add(new TreeMap<>());
             }
             cIndexes = new int[headers.size()];
             String[] dbHeaders = db.readLine().split("\t");
@@ -128,7 +132,9 @@ public class Parser2 {
                     }
                 }
             }
-
+            for (int i = 0; i < statsMap.size(); i++) {
+                stats.add(new SimpleIntegerProperty());
+            }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(SIFTParser.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -139,6 +145,14 @@ public class Parser2 {
     void applyFilters() {
         rows.clear();
         new Thread(new Reader()).start();
+    }
+
+    public List<Map<String, Integer>> getStatsMap() {
+        return statsMap;
+    }
+
+    public List<SimpleIntegerProperty> getStats() {
+        return stats;
     }
 
     private class Reader extends Task<Void> {
@@ -160,6 +174,19 @@ public class Parser2 {
                         }
                     }
                     rows.add(destiny);
+                    // Update stats:
+                    for (int i = 0; i < statsMap.size(); i++) {
+                        final Map<String, Integer> map = statsMap.get(i);
+                        final int index = i;
+                        if (map.containsKey(destiny[i])) {
+                            final int incr = map.get(destiny[i]) + 1;
+                            map.put(destiny[i], incr);
+                            stats.get(index).set(incr);
+                        } else {
+                            map.put(destiny[i], 1);
+                            stats.get(index).set(1);
+                        }
+                    }
                 });
             }
             MainViewController.printMessage("Load complete.");

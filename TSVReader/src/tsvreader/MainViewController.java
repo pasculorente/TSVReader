@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -54,9 +55,9 @@ import tsvreader.filter.NumericFilter;
 import tsvreader.filter.TextFilter;
 
 /**
- * The controller of the main view. With the open button, it shows a window to select a file. Then,
- * loads the Dataset, creates the filters view, and shows the table. It also interprets user filters
- * and translate them to the Dataset.
+ * The controller of the main view. With the open button, it shows a window to
+ * select a file. Then, loads the Dataset, creates the filters view, and shows
+ * the table. It also interprets user filters and translate them to the Dataset.
  *
  * @author Pascual Lorente Arencibia
  */
@@ -99,14 +100,15 @@ public class MainViewController {
      */
     private Dataset dataset;
     /**
-     * The list of Filters (not the graphical filters, but the intermediate ones). Any filter in
-     * this list corresponds to the same column filter in the GUI filters list.
+     * The list of Filters (not the graphical filters, but the intermediate
+     * ones). Any filter in this list corresponds to the same column filter in
+     * the GUI filters list.
      */
     // private List<Filter> filters;
     /**
      * The file parser/loader.
      */
-    private Parser parser;
+//    private Parser parser;
     private Parser2 parser2;
     /**
      * The file type.
@@ -114,20 +116,19 @@ public class MainViewController {
     private String type;
 
     /**
-     * Makes some initial configuration. This method is called automatically when the window is
-     * loaded.
+     * Makes some initial configuration. This method is called automatically
+     * when the window is loaded.
      */
     public void initialize() {
         staticMessage = message;
-        //filters = new ArrayList<>();
         saveButton.setDisable(true);
         filtersComboBox.getItems().clear();
     }
 
     /**
-     * Shows the file selection, waits for the user to select a file, closes the file selection
-     * windows and launches a Parser to load the Dataset. When the dataset is loaded, it will
-     * automatically call restartGUI().
+     * Shows the file selection, waits for the user to select a file, closes the
+     * file selection windows and launches a Parser to load the Dataset. When
+     * the dataset is loaded, it will automatically call restartGUI().
      */
     @FXML
     private void load() {
@@ -145,6 +146,7 @@ public class MainViewController {
                 parser2 = new Parser2(new File(file), new File("tsv_files", type + ".header"));
                 setTable();
                 setFilters();
+//                new Thread(new StatsRunner()).start();
 //                switch (type) {
 //                    case "sift_snp":
 //                        parser = new SIFTParser(file);
@@ -166,59 +168,8 @@ public class MainViewController {
     }
 
     /**
-     * Takes a new Dataset from the parser and reloads all the Graphical User Interface: the table
-     * and the filters box.
-     */
-//    private void restartGUI() {
-//        try {
-//            dataset = parser.get();
-//        } catch (InterruptedException | ExecutionException ex) {
-//            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
-//            return;
-//        }
-//        lines.textProperty().unbind();
-//        lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
-//                + " in total)");
-//        loadFilters();
-//        saveButton.setDisable(false);
-//        table = populateTable();
-//        tableContainer.setContent(table);
-//        new Thread(new StatsRunner()).start();
-//    }
-    /**
-     * Using the current Dataset, makes a new table. Creates all the columns and assigns the content
-     * to the view. This new table is not allocated anywhere in the GUI. Use the return value to put
-     * it whereas you want.
-     *
-     * @return the new table created from the current Dataset.
-     */
-//    private TableView<String[]> populateTable() {
-//        TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
-//                getRows()));
-//        for (int i = 0; i < dataset.getHeaders().size(); i++) {
-//            Header header = dataset.getHeaders().get(i);
-//            TableColumn<String[], String> aColumn = new TableColumn<>();
-//            aColumn.setText(null);
-//            aColumn.setGraphic(new HeaderVbox(header.getName(), header.getDescription()));
-//            final int index = i;
-//            aColumn.setCellValueFactory((TableColumn.CellDataFeatures<String[], String> row) -> {
-//                return new SimpleStringProperty(index < row.getValue().length
-//                        ? row.getValue()[index] : "");
-//            });
-//            aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
-//            newTable.getColumns().add(aColumn);
-//
-//        }
-//        newTable.setSortPolicy((TableView<String[]> p) -> {
-//            return false;
-//        });
-//        newTable.setEditable(true);
-//        newTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-//        return newTable;
-//    }
-    /**
-     * Refresh the filters pane, according to the dataset. It also resets the list of internal
-     * filters.
+     * Refresh the filters pane, according to the dataset. It also resets the
+     * list of internal filters.
      */
     private void loadFilters() {
         filtersBox.getChildren().clear();
@@ -231,8 +182,8 @@ public class MainViewController {
     }
 
     /**
-     * Method called when the user presses the Add Button in the filters pane. if there is a column
-     * selected in the ComboBox, it will add a new Filter.
+     * Method called when the user presses the Add Button in the filters pane.
+     * if there is a column selected in the ComboBox, it will add a new Filter.
      */
     @FXML
     private void addNewFilter() {
@@ -243,7 +194,8 @@ public class MainViewController {
     }
 
     /**
-     * Adds a new filter to the filters pane and creates the corresponding internal filter.
+     * Adds a new filter to the filters pane and creates the corresponding
+     * internal filter.
      *
      * @param header
      * @param index
@@ -327,8 +279,8 @@ public class MainViewController {
     }
 
     /**
-     * Applies all the current filters to the Dataset and reloads the table using the cachedRows
-     * from the Dataset.
+     * Applies all the current filters to the Dataset and reloads the table
+     * using the cachedRows from the Dataset.
      */
     private void filter() {
         parser2.applyFilters();
@@ -337,7 +289,7 @@ public class MainViewController {
 //        table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
 //        lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
 //                + " in total)");
-//        new Thread(new StatsRunner()).start();
+ //       new Thread(new StatsRunner()).start();
     }
 
     /**
@@ -375,8 +327,9 @@ public class MainViewController {
     }
 
     /**
-     * Shows a pane to the user to save the filtered Rows in the Dataset in a file. This method will
-     * use a Saver to do the job. See Saver for mor details.
+     * Shows a pane to the user to save the filtered Rows in the Dataset in a
+     * file. This method will use a Saver to do the job. See Saver for mor
+     * details.
      *
      * @see Saver
      */
@@ -395,7 +348,8 @@ public class MainViewController {
         }
     }
 
-    @FXML private void combine() {
+    @FXML
+    private void combine() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("CombinePane.fxml"));
             Parent parent = loader.load();
@@ -419,22 +373,30 @@ public class MainViewController {
     }
 
     public static void printMessage(String message) {
+        System.out.println(message);
         Platform.runLater(() -> {
             staticMessage.setText(message);
         });
     }
 
+    /**
+     * Creates a new table and associates the data in parser2.
+     */
     private void setTable() {
         TableView<String[]> newTable = new TableView<>(parser2.getRows());
+        // Creating the columns...
         for (int i = 0; i < parser2.getHeaders().size(); i++) {
             Header h = parser2.getHeaders().get(i);
             TableColumn<String[], String> aColumn = new TableColumn<>();
             aColumn.setText(null);
-            aColumn.setGraphic(new HeaderVbox(h.getName(), h.getDescription()));
+            // The column header is a personalized Node (HeaderVBox)
+            // that displays not only the column name, but stats too.
+            HeaderVbox hv = new HeaderVbox(h.getName(), h.getDescription());
+            hv.count.textProperty().bind(parser2.getStats().get(i).asString());
+            aColumn.setGraphic(hv);
             final int index = i;
             aColumn.setCellValueFactory((TableColumn.CellDataFeatures<String[], String> row) -> {
-                return new SimpleStringProperty(index < row.getValue().length
-                        ? row.getValue()[index] : "");
+                return new SimpleStringProperty(row.getValue()[index]);
             });
             aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
             newTable.getColumns().add(aColumn);
@@ -449,6 +411,11 @@ public class MainViewController {
         tableContainer.setContent(table);
     }
 
+    /**
+     * Clears the current filters and creates a new list with columns from
+     * parser2.
+     *
+     */
     private void setFilters() {
         filtersBox.getChildren().clear();
         parser2.getFilters().clear();
@@ -463,6 +430,7 @@ public class MainViewController {
 
         @Override
         protected Void call() throws Exception {
+            printMessage("Running stats.");
             List<Map<String, Integer>> values = new ArrayList<>(parser2.getHeaders().size());
             parser2.getHeaders().forEach((Header header) -> {
                 values.add(new TreeMap<>());
@@ -484,6 +452,7 @@ public class MainViewController {
                     header.count.setText(values.get(index).size() + "");
                 });
             }
+            printMessage("Stats done.");
             return null;
         }
 
@@ -541,15 +510,6 @@ public class MainViewController {
             textField.setEditable(false);
             textField.selectAll();
         }
-    }
-
-    private class NumberedCell extends TableCell {
-
-        @Override
-        protected void updateItem(Object t, boolean bln) {
-            setText(getIndex() + "");
-        }
-
     }
 
     private class HeaderVbox extends VBox {

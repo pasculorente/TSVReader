@@ -10,7 +10,7 @@ import javafx.stage.Stage;
  * The main class of the application. Loads the main window and keeps a pointer to the Stage.
  * Furthermore, it has a static method to change the title of the window.
  *
- * @author uichuimi03
+ * @author Pascual Lorente Arencibia
  */
 public class TSVReader extends Application {
 

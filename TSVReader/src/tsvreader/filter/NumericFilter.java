@@ -32,8 +32,8 @@ public class NumericFilter extends Filter {
     private final TextField max;
     double maxValue, minValue;
 
-    public NumericFilter(String type, int column, ComboBox logic, CheckBox empty, TextField min,
-            TextField max) {
+    public NumericFilter(String type, int column, ComboBox logic, CheckBox empty,
+            TextField min, TextField max) {
         super(type, column, logic, empty);
         this.min = min;
         this.max = max;
@@ -63,6 +63,9 @@ public class NumericFilter extends Filter {
 
     @Override
     public boolean accept(String value) {
+        if (min.getText().isEmpty() || max.getText().isEmpty()) {
+            return true;
+        }
         if (value.isEmpty() && getEmpty().isSelected()) {
             return true;
         }
