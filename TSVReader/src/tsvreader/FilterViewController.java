@@ -23,7 +23,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import tsvreader.Dataset.Logic;
+import tsvreader.filter.Filter;
 
 /**
  * FXML Controller class for each GUI filter. Basically it has a pointer to each element.
@@ -58,7 +58,7 @@ public class FilterViewController {
      * Initializes the controller class. Called automatically when the window is loaded.
      */
     public void initialize() {
-        logic.setItems(FXCollections.observableArrayList(Logic.values()));
+        logic.setItems(FXCollections.observableArrayList(Filter.Logic.values()));
         logic.getSelectionModel().selectFirst();
     }
 

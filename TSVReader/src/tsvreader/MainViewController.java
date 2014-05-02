@@ -22,14 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -38,7 +35,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -53,6 +49,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tsvreader.filter.Filter;
+import tsvreader.filter.NumericFilter;
+import tsvreader.filter.TextFilter;
 
 /**
  * The controller of the main view. With the open button, it shows a window to select a file. Then,
@@ -103,11 +102,12 @@ public class MainViewController {
      * The list of Filters (not the graphical filters, but the intermediate ones). Any filter in
      * this list corresponds to the same column filter in the GUI filters list.
      */
-    private List<Filter> filters;
+    // private List<Filter> filters;
     /**
      * The file parser/loader.
      */
     private Parser parser;
+    private Parser2 parser2;
     /**
      * The file type.
      */
@@ -119,7 +119,7 @@ public class MainViewController {
      */
     public void initialize() {
         staticMessage = message;
-        filters = new ArrayList<>();
+        //filters = new ArrayList<>();
         saveButton.setDisable(true);
         filtersComboBox.getItems().clear();
     }
@@ -142,18 +142,21 @@ public class MainViewController {
             if (!controller.isCancelled()) {
                 String file = controller.getFile();
                 type = controller.getType();
-                switch (type) {
-                    case "sift_snp":
-                        parser = new SIFTParser(file);
-                        break;
-                    default:
-                        parser = new Parser(file, "tsv_files/" + type + ".header");
-                }
-                parser.setOnSucceeded((WorkerStateEvent t) -> {
-                    restartGUI();
-                });
-                lines.textProperty().bind(parser.messageProperty());
-                new Thread(parser).start();
+                parser2 = new Parser2(new File(file), new File("tsv_files", type + ".header"));
+                setTable();
+                setFilters();
+//                switch (type) {
+//                    case "sift_snp":
+//                        parser = new SIFTParser(file);
+//                        break;
+//                    default:
+//                        parser = new Parser(file, "tsv_files/" + type + ".header");
+//                }
+//                parser.setOnSucceeded((WorkerStateEvent t) -> {
+//                    restartGUI();
+//                });
+//                lines.textProperty().bind(parser.messageProperty());
+//                new Thread(parser).start();
                 TSVReader.setTitle(file);
             }
         } catch (IOException ex) {
@@ -166,23 +169,22 @@ public class MainViewController {
      * Takes a new Dataset from the parser and reloads all the Graphical User Interface: the table
      * and the filters box.
      */
-    private void restartGUI() {
-        try {
-            dataset = parser.get();
-        } catch (InterruptedException | ExecutionException ex) {
-            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        lines.textProperty().unbind();
-        lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
-                + " in total)");
-        loadFilters();
-        saveButton.setDisable(false);
-        table = populateTable();
-        tableContainer.setContent(table);
-        new Thread(new StatsRunner()).start();
-    }
-
+//    private void restartGUI() {
+//        try {
+//            dataset = parser.get();
+//        } catch (InterruptedException | ExecutionException ex) {
+//            Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
+//            return;
+//        }
+//        lines.textProperty().unbind();
+//        lines.setText(dataset.getRows().size() + " rows (" + dataset.getRows().size()
+//                + " in total)");
+//        loadFilters();
+//        saveButton.setDisable(false);
+//        table = populateTable();
+//        tableContainer.setContent(table);
+//        new Thread(new StatsRunner()).start();
+//    }
     /**
      * Using the current Dataset, makes a new table. Creates all the columns and assigns the content
      * to the view. This new table is not allocated anywhere in the GUI. Use the return value to put
@@ -190,41 +192,40 @@ public class MainViewController {
      *
      * @return the new table created from the current Dataset.
      */
-    private TableView<String[]> populateTable() {
-        TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
-                getRows()));
-        for (int i = 0; i < dataset.getHeaders().size(); i++) {
-            Header header = dataset.getHeaders().get(i);
-            TableColumn<String[], String> aColumn = new TableColumn<>();
-            aColumn.setText(null);
-            aColumn.setGraphic(new HeaderVbox(header.getName(), header.getDescription()));
-            final int index = i;
-            aColumn.setCellValueFactory((TableColumn.CellDataFeatures<String[], String> row) -> {
-                return new SimpleStringProperty(index < row.getValue().length
-                        ? row.getValue()[index] : "");
-            });
-            aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
-            newTable.getColumns().add(aColumn);
-
-        }
-        newTable.setSortPolicy((TableView<String[]> p) -> {
-            return false;
-        });
-        newTable.setEditable(true);
-        newTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        return newTable;
-    }
-
+//    private TableView<String[]> populateTable() {
+//        TableView<String[]> newTable = new TableView<>(FXCollections.observableArrayList(dataset.
+//                getRows()));
+//        for (int i = 0; i < dataset.getHeaders().size(); i++) {
+//            Header header = dataset.getHeaders().get(i);
+//            TableColumn<String[], String> aColumn = new TableColumn<>();
+//            aColumn.setText(null);
+//            aColumn.setGraphic(new HeaderVbox(header.getName(), header.getDescription()));
+//            final int index = i;
+//            aColumn.setCellValueFactory((TableColumn.CellDataFeatures<String[], String> row) -> {
+//                return new SimpleStringProperty(index < row.getValue().length
+//                        ? row.getValue()[index] : "");
+//            });
+//            aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
+//            newTable.getColumns().add(aColumn);
+//
+//        }
+//        newTable.setSortPolicy((TableView<String[]> p) -> {
+//            return false;
+//        });
+//        newTable.setEditable(true);
+//        newTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//        return newTable;
+//    }
     /**
      * Refresh the filters pane, according to the dataset. It also resets the list of internal
      * filters.
      */
     private void loadFilters() {
         filtersBox.getChildren().clear();
-        filters.clear();
+        parser2.getFilters().clear();
         filtersComboBox.getItems().clear();
-        for (int i = 0; i < dataset.getHeaders().size(); i++) {
-            Header header = dataset.getHeaders().get(i);
+        for (int i = 0; i < parser2.getHeaders().size(); i++) {
+            Header header = parser2.getHeaders().get(i);
             filtersComboBox.getItems().add(header.getName());
         }
     }
@@ -237,7 +238,7 @@ public class MainViewController {
     private void addNewFilter() {
         int index = filtersComboBox.getSelectionModel().getSelectedIndex();
         if (index != -1) {
-            addFilter(dataset.getHeaders().get(index), index);
+            addFilter(parser2.getHeaders().get(index), index);
         }
     }
 
@@ -282,8 +283,8 @@ public class MainViewController {
                     });
                     controller.getValues().getChildren().addAll(min, max);
                     filtersBox.getChildren().add(parent);
-                    filters.add(new NumericFilter("numeric", index, controller.getLogic(),
-                            controller.getEmpty(), min, max));
+                    parser2.getFilters().add(new NumericFilter("numeric", index, controller.
+                            getLogic(), controller.getEmpty(), min, max));
                     HBox.setHgrow(min, Priority.SOMETIMES);
                     HBox.setHgrow(max, Priority.SOMETIMES);
                     break;
@@ -299,8 +300,8 @@ public class MainViewController {
                     controller.getValues().getChildren().add(value);
                     HBox.setHgrow(value, Priority.SOMETIMES);
                     filtersBox.getChildren().add(parent);
-                    filters.add(new TextFilter(header.getType(), index, controller.getLogic(),
-                            controller.getEmpty(), value));
+                    parser2.getFilters().add(new TextFilter(header.getType(), index, controller.
+                            getLogic(), controller.getEmpty(), value));
                     break;
             }
         } catch (IOException ex) {
@@ -318,7 +319,7 @@ public class MainViewController {
             Parent p = (Parent) filtersBox.getChildren().get(i);
             if (p == parent) {
                 filtersBox.getChildren().remove(i);
-                filters.remove(i);
+                parser2.getFilters().remove(i);
                 filter();
                 return;
             }
@@ -330,12 +331,13 @@ public class MainViewController {
      * from the Dataset.
      */
     private void filter() {
-        dataset.resetVariants();
-        filters.forEach(this::filter);
-        table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
-        lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
-                + " in total)");
-        new Thread(new StatsRunner()).start();
+        parser2.applyFilters();
+//        dataset.resetVariants();
+//        filters.forEach(this::filter);
+//        table.setItems(FXCollections.observableArrayList(dataset.getCachedRows()));
+//        lines.setText(dataset.getCachedRows().size() + " rows (" + dataset.getRows().size()
+//                + " in total)");
+//        new Thread(new StatsRunner()).start();
     }
 
     /**
@@ -354,7 +356,6 @@ public class MainViewController {
                     NumericFilter nFilter = (NumericFilter) filter;
                     String min = nFilter.getMin().getText();
                     String max = nFilter.getMax().getText();
-
                     if (!min.isEmpty() && !max.isEmpty()) {
                         double minimun = Double.valueOf(min);
                         double maximum = Double.valueOf(max);
@@ -409,7 +410,7 @@ public class MainViewController {
                     + " in total)");
             loadFilters();
             saveButton.setDisable(false);
-            table = populateTable();
+//            table = populateTable();
             tableContainer.setContent(table);
         } catch (IOException ex) {
             Logger.getLogger(MainViewController.class.getName()).log(Level.SEVERE, null, ex);
@@ -423,111 +424,50 @@ public class MainViewController {
         });
     }
 
-    /**
-     * This is an internal representation of a Filter in the GUI. It stores type (text or numeric),
-     * the corresponding column in the table and the GUI elements where the user put the parameters
-     * (like TextFileds or ComboBoxes).
-     */
-    private abstract static class Filter {
-
-        private final ComboBox logic;
-        private final CheckBox empty;
-        /**
-         * The column in the table that is filtered.
-         */
-        private final int column;
-        /**
-         * The type of the column (text or numeric).
-         */
-        private final String type;
-
-        /**
-         * The first node must be the ComboBox of the logic, then the user parameters.
-         *
-         * @param type the filter type.
-         * @param column the column in the table.
-         * @param nodes the parameters nodes.
-         */
-        private Filter(String type, int column, ComboBox logic, CheckBox empty) {
-            this.type = type;
-            this.logic = logic;
-            this.empty = empty;
-            this.column = column;
+    private void setTable() {
+        TableView<String[]> newTable = new TableView<>(parser2.getRows());
+        for (int i = 0; i < parser2.getHeaders().size(); i++) {
+            Header h = parser2.getHeaders().get(i);
+            TableColumn<String[], String> aColumn = new TableColumn<>();
+            aColumn.setText(null);
+            aColumn.setGraphic(new HeaderVbox(h.getName(), h.getDescription()));
+            final int index = i;
+            aColumn.setCellValueFactory((TableColumn.CellDataFeatures<String[], String> row) -> {
+                return new SimpleStringProperty(index < row.getValue().length
+                        ? row.getValue()[index] : "");
+            });
+            aColumn.setCellFactory((TableColumn<String[], String> p) -> new CopiableCell());
+            newTable.getColumns().add(aColumn);
         }
-
-        /**
-         * Gets the column to filter.
-         *
-         * @return the column to filter.
-         */
-        public int getColumn() {
-            return column;
-        }
-
-        /**
-         * Gets the type of the column.
-         *
-         * @return the type of the column.
-         */
-        public String getType() {
-            return type;
-        }
-
-        public CheckBox getEmpty() {
-            return empty;
-        }
-
-        public ComboBox getLogic() {
-            return logic;
-        }
-
+        newTable.setSortPolicy((TableView<String[]> p) -> {
+            return false;
+        });
+        newTable.setEditable(true);
+        newTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        lines.textProperty().bind(parser2.getLines().asString());
+        table = newTable;
+        tableContainer.setContent(table);
     }
 
-    private static class NumericFilter extends Filter {
-
-        private final TextField min, max;
-
-        public NumericFilter(String type, int column, ComboBox logic, CheckBox empty, TextField min,
-                TextField max) {
-            super(type, column, logic, empty);
-            this.min = min;
-            this.max = max;
+    private void setFilters() {
+        filtersBox.getChildren().clear();
+        parser2.getFilters().clear();
+        filtersComboBox.getItems().clear();
+        for (int i = 0; i < parser2.getHeaders().size(); i++) {
+            Header header = parser2.getHeaders().get(i);
+            filtersComboBox.getItems().add(header.getName());
         }
-
-        public TextField getMax() {
-            return max;
-        }
-
-        public TextField getMin() {
-            return min;
-        }
-
-    }
-
-    private static class TextFilter extends Filter {
-
-        private final TextField value;
-
-        public TextFilter(String type, int column, ComboBox logic, CheckBox empty, TextField value) {
-            super(type, column, logic, empty);
-            this.value = value;
-        }
-
-        public TextField getValue() {
-            return value;
-        }
-
     }
 
     private class StatsRunner extends Task<Void> {
 
         @Override
         protected Void call() throws Exception {
-            List<Map<String, Integer>> values = new ArrayList<>(dataset.getHeaders().size());
-            dataset.getHeaders().forEach((Header header) -> {
+            List<Map<String, Integer>> values = new ArrayList<>(parser2.getHeaders().size());
+            parser2.getHeaders().forEach((Header header) -> {
                 values.add(new TreeMap<>());
             });
-            dataset.getCachedRows().forEach((String[] row) -> {
+            parser2.getRows().forEach((String[] row) -> {
                 for (int column = 0; column < row.length; column++) {
                     final Map<String, Integer> map = values.get(column);
                     if (map.containsKey(row[column])) {
@@ -542,8 +482,6 @@ public class MainViewController {
                 Platform.runLater(() -> {
                     HeaderVbox header = (HeaderVbox) table.getColumns().get(index).getGraphic();
                     header.count.setText(values.get(index).size() + "");
-//                    table.getColumns().get(index).setText(dataset.getHeaders().get(index).getName()
-//                            + "\n" + values.get(index).size());
                 });
             }
             return null;
