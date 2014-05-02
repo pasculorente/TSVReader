@@ -136,14 +136,20 @@ public class Parser2 {
                 stats.add(new SimpleIntegerProperty());
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(SIFTParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Parser2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(SIFTParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Parser2.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     void applyFilters() {
         rows.clear();
+        stats.stream().forEach((property) -> {
+            property.set(0);
+        });
+        statsMap.stream().forEach((Map<String, Integer> t) -> {
+            t.clear();
+        });
         new Thread(new Reader()).start();
     }
 
@@ -188,6 +194,8 @@ public class Parser2 {
                         }
                     }
                 });
+            }catch (IOException ex){
+                Logger.getLogger(Parser2.class.getName()).log(Level.SEVERE, null, ex);
             }
             MainViewController.printMessage("Load complete.");
             return null;
